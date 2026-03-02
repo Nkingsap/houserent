@@ -62,7 +62,7 @@ const HomeScreen = ({ navigation }) => {
     const quickFilters = [
         { label: 'Apartments', icon: 'business-outline', type: 'apartment' },
         { label: 'Villas', icon: 'home-outline', type: 'villa' },
-        { label: 'Houses', icon: 'house-outline', type: 'house' },
+        { label: 'Houses', icon: 'storefront-outline', type: 'house' },
     ];
 
     return (

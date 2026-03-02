@@ -22,18 +22,40 @@ import { useAuth } from '../../context/AuthContext';
 const { width } = Dimensions.get('window');
 
 const colorMapStyle = [
-    { elementType: 'geometry', stylers: [{ color: '#e8f5e9' }] },
-    { elementType: 'labels.text.fill', stylers: [{ color: '#3e3e3e' }] },
-    { elementType: 'labels.text.stroke', stylers: [{ color: '#ffffff' }] },
-    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#ffffff' }] },
-    { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#fdd835' }] },
-    { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#f9a825' }] },
-    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#64b5f6' }] },
-    { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#1565c0' }] },
-    { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#a5d6a7' }] },
-    { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#c8e6c9' }] },
-    { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#dcedc8' }] },
-    { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#b0bec5' }] },
+    // Base land — warm sandy cream
+    { elementType: 'geometry', stylers: [{ color: '#f5e6c8' }] },
+    // Labels
+    { elementType: 'labels.text.fill', stylers: [{ color: '#2c2c2c' }] },
+    { elementType: 'labels.text.stroke', stylers: [{ color: '#ffffff' }, { weight: 3 }] },
+    // Local roads — soft off-white
+    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#fefefe' }] },
+    { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#e0c97a' }, { weight: 1 }] },
+    // Arterial roads — vibrant amber
+    { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#ffca28' }] },
+    { featureType: 'road.arterial', elementType: 'geometry.stroke', stylers: [{ color: '#f59e0b' }, { weight: 1.5 }] },
+    // Highways — bold orange
+    { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#ff7043' }] },
+    { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#bf360c' }, { weight: 1.5 }] },
+    { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#ffffff' }] },
+    // Water — vivid teal-blue
+    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#29b6f6' }] },
+    { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#0277bd' }] },
+    // Parks & nature — lush emerald
+    { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#66bb6a' }] },
+    { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#1b5e20' }] },
+    { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#a5d6a7' }] },
+    // Other POI — soft lavender
+    { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#e1bee7' }] },
+    { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#6a1b9a' }] },
+    // Transit — vivid purple
+    { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#ce93d8' }] },
+    { featureType: 'transit.station', elementType: 'labels.text.fill', stylers: [{ color: '#7b1fa2' }] },
+    // Administrative borders
+    { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#b0bec5' }, { weight: 1.5 }] },
+    { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#455a64' }] },
+    // Buildings
+    { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#efebe9' }] },
+    { featureType: 'landscape.man_made', elementType: 'geometry.stroke', stylers: [{ color: '#d7ccc8' }] },
 ];
 
 const ExploreScreen = ({ navigation, route }) => {
