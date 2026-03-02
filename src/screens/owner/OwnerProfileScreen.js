@@ -94,8 +94,8 @@ const OwnerProfileScreen = () => {
                                 {
                                     icon: 'calendar-outline',
                                     label: 'Member Since',
-                                    value: user?.createdAt
-                                        ? new Date(user.createdAt).toLocaleDateString('en-IN', {
+                                    value: user?.created_at
+                                        ? new Date(user.created_at).toLocaleDateString('en-IN', {
                                             year: 'numeric',
                                             month: 'long',
                                         })

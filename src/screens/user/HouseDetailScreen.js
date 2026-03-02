@@ -15,7 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker } from '../../components/MapViewWrapper';
 import { colors, spacing, borderRadius, typography, shadows } from '../../theme';
 import AmenityTag from '../../components/AmenityTag';
-import { isFavorite, toggleFavorite, findUserByEmail } from '../../services/storageService';
+import { apiGetFavorites, apiToggleFavorite } from '../../services/apiService';
 import { useAuth } from '../../context/AuthContext';
 
 const { width } = Dimensions.get('window');
@@ -47,14 +47,14 @@ const HouseDetailScreen = ({ navigation, route }) => {
 
     const checkFavorite = async () => {
         if (user) {
-            const fav = await isFavorite(user.id, listing.id);
-            setFavorited(fav);
+            const { favorites } = await apiGetFavorites(user.id);
+            setFavorited(favorites.includes(listing.id));
         }
     };
 
     const handleFavorite = async () => {
         if (!user) return;
-        await toggleFavorite(user.id, listing.id);
+        await apiToggleFavorite(user.id, listing.id);
         setFavorited(!favorited);
     };
 

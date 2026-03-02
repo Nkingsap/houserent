@@ -14,7 +14,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { colors, spacing, borderRadius, typography } from '../../theme';
 import SearchBar from '../../components/SearchBar';
 import HouseCard from '../../components/HouseCard';
-import { getListings, getFavorites, toggleFavorite } from '../../services/storageService';
+import { apiGetListings, apiGetFavorites, apiToggleFavorite } from '../../services/apiService';
 import { useAuth } from '../../context/AuthContext';
 
 const HomeScreen = ({ navigation }) => {
@@ -26,13 +26,13 @@ const HomeScreen = ({ navigation }) => {
     const [refreshing, setRefreshing] = useState(false);
 
     const loadData = async () => {
-        const all = await getListings();
+        const { listings: all } = await apiGetListings();
         const available = all.filter((l) => l.available);
         setListings(available);
         setFeatured(available.filter((l) => l.price >= 30000).slice(0, 5));
         if (user) {
-            const favs = await getFavorites(user.id);
-            setFavorites(favs);
+            const { favorites } = await apiGetFavorites(user.id);
+            setFavorites(favorites);
         }
     };
 
@@ -50,8 +50,9 @@ const HomeScreen = ({ navigation }) => {
 
     const handleFavorite = async (listingId) => {
         if (!user) return;
-        const updated = await toggleFavorite(user.id, listingId);
-        setFavorites(updated);
+        await apiToggleFavorite(user.id, listingId);
+        const { favorites } = await apiGetFavorites(user.id);
+        setFavorites(favorites);
     };
 
     const handleSearch = () => {

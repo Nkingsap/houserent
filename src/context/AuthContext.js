@@ -1,12 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import {
-    getCurrentUser,
-    setCurrentUser,
-    clearCurrentUser,
-    findUserByEmail,
-    saveUser,
-    getUsers,
-} from '../services/storageService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { apiRegister, apiLogin } from '../services/apiService';
+
+const SESSION_KEY = '@houserent_current_user';
 
 const AuthContext = createContext(null);
 
@@ -22,8 +18,8 @@ export const AuthProvider = ({ children }) => {
 
     const loadUser = async () => {
         try {
-            const stored = await getCurrentUser();
-            if (stored) setUser(stored);
+            const raw = await AsyncStorage.getItem(SESSION_KEY);
+            if (raw) setUser(JSON.parse(raw));
         } catch (e) {
             console.error('Load user error', e);
         } finally {
@@ -32,62 +28,34 @@ export const AuthProvider = ({ children }) => {
     };
 
     const register = async ({ name, email, phone, password, role }) => {
-        const existing = await findUserByEmail(email);
-        if (existing) throw new Error('Email already registered');
-
-        const newUser = {
-            id: Date.now().toString(),
-            name,
-            email: email.toLowerCase(),
-            phone,
-            password,
-            role, // 'owner' or 'user'
-            avatar: null,
-            createdAt: new Date().toISOString(),
-        };
-
-        await saveUser(newUser);
-        const sessionUser = { ...newUser };
-        delete sessionUser.password;
-        await setCurrentUser(sessionUser);
-        setUser(sessionUser);
-        return sessionUser;
+        const { user: newUser } = await apiRegister({ name, email, phone, password, role });
+        await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(newUser));
+        setUser(newUser);
+        return newUser;
     };
 
     const login = async (email, password) => {
-        const found = await findUserByEmail(email);
-        if (!found) throw new Error('No account found with this email');
-        if (found.password !== password) throw new Error('Incorrect password');
-
-        const sessionUser = { ...found };
-        delete sessionUser.password;
-        await setCurrentUser(sessionUser);
-        setUser(sessionUser);
-        return sessionUser;
+        const { user: loggedIn } = await apiLogin(email, password);
+        await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(loggedIn));
+        setUser(loggedIn);
+        return loggedIn;
     };
 
     const logout = async () => {
-        await clearCurrentUser();
+        await AsyncStorage.removeItem(SESSION_KEY);
         setUser(null);
     };
 
+    // Profile updates go directly via apiUpdateUser if you add that endpoint later.
+    // For now, patch local session only.
     const updateProfile = async (updates) => {
-        const users = await getUsers();
-        const idx = users.findIndex((u) => u.id === user.id);
-        if (idx >= 0) {
-            users[idx] = { ...users[idx], ...updates };
-            await saveUser(users[idx]);
-            const sessionUser = { ...users[idx] };
-            delete sessionUser.password;
-            await setCurrentUser(sessionUser);
-            setUser(sessionUser);
-        }
+        const updated = { ...user, ...updates };
+        await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(updated));
+        setUser(updated);
     };
 
     return (
-        <AuthContext.Provider
-            value={{ user, loading, login, register, logout, updateProfile }}
-        >
+        <AuthContext.Provider value={{ user, loading, login, register, logout, updateProfile }}>
             {children}
         </AuthContext.Provider>
     );

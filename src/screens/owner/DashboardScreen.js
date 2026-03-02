@@ -14,7 +14,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { colors, spacing, borderRadius, typography, shadows } from '../../theme';
 import HouseCard from '../../components/HouseCard';
 import EmptyState from '../../components/EmptyState';
-import { getListingsByOwner, deleteListing } from '../../services/storageService';
+import { apiGetListingsByOwner, apiDeleteListing } from '../../services/apiService';
 import { useAuth } from '../../context/AuthContext';
 
 const DashboardScreen = ({ navigation }) => {
@@ -24,8 +24,8 @@ const DashboardScreen = ({ navigation }) => {
 
     const loadListings = async () => {
         if (!user) return;
-        const data = await getListingsByOwner(user.id);
-        setListings(data);
+        const { listings } = await apiGetListingsByOwner(user.id);
+        setListings(listings);
     };
 
     useFocusEffect(
@@ -50,7 +50,7 @@ const DashboardScreen = ({ navigation }) => {
                     text: 'Delete',
                     style: 'destructive',
                     onPress: async () => {
-                        await deleteListing(listing.id);
+                        await apiDeleteListing(listing.id);
                         loadListings();
                     },
                 },

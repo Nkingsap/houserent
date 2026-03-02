@@ -13,7 +13,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { colors, spacing, typography } from '../../theme';
 import HouseCard from '../../components/HouseCard';
 import EmptyState from '../../components/EmptyState';
-import { getFavorites, getListings, toggleFavorite } from '../../services/storageService';
+import { apiGetFavoriteListings, apiToggleFavorite, apiGetFavorites } from '../../services/apiService';
 import { useAuth } from '../../context/AuthContext';
 
 const SavedScreen = ({ navigation }) => {
@@ -22,10 +22,8 @@ const SavedScreen = ({ navigation }) => {
 
     const loadSaved = async () => {
         if (!user) return;
-        const favIds = await getFavorites(user.id);
-        const allListings = await getListings();
-        const saved = allListings.filter((l) => favIds.includes(l.id));
-        setSavedListings(saved);
+        const { listings } = await apiGetFavoriteListings(user.id);
+        setSavedListings(listings);
     };
 
     useFocusEffect(
@@ -35,7 +33,7 @@ const SavedScreen = ({ navigation }) => {
     );
 
     const handleRemove = async (listingId) => {
-        await toggleFavorite(user.id, listingId);
+        await apiToggleFavorite(user.id, listingId);
         loadSaved();
     };
 

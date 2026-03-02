@@ -17,7 +17,7 @@ import MapView, { Marker } from '../../components/MapViewWrapper';
 import { colors, spacing, borderRadius, typography } from '../../theme';
 import InputField from '../../components/InputField';
 import LoadingOverlay from '../../components/LoadingOverlay';
-import { saveListing } from '../../services/storageService';
+import { apiCreateListing, apiUpdateListing, apiUploadImage } from '../../services/apiService';
 import { useAuth } from '../../context/AuthContext';
 
 const colorMapStyle = [
@@ -118,9 +118,18 @@ const AddListingScreen = ({ navigation, route }) => {
     const handleSave = async () => {
         setLoading(true);
         try {
-            const listingData = {
-                id: editingListing?.id || Date.now().toString(),
-                ownerId: user.id,
+            const isEditing = !!editingListing?.id;
+
+            // Upload any new local images (file:// URIs) to Supabase Storage
+            // Images already uploaded (https://) are kept as-is
+            const uploadedImages = await Promise.all(
+                images.map((uri) =>
+                    uri.startsWith('https://') ? uri : apiUploadImage(uri)
+                )
+            );
+
+            const payload = {
+                owner_id: user.id,
                 title: title.trim(),
                 description: description.trim(),
                 price: parseFloat(price),
@@ -133,13 +142,17 @@ const AddListingScreen = ({ navigation, route }) => {
                 latitude: location.latitude,
                 longitude: location.longitude,
                 amenities,
-                images,
+                images: uploadedImages,
                 furnished,
                 available: true,
-                createdAt: editingListing?.createdAt || new Date().toISOString(),
             };
 
-            await saveListing(listingData);
+            if (isEditing) {
+                await apiUpdateListing(editingListing.id, payload);
+            } else {
+                await apiCreateListing(payload);
+            }
+
             Alert.alert(
                 isEditing ? 'Updated!' : 'Published!',
                 isEditing
@@ -148,7 +161,7 @@ const AddListingScreen = ({ navigation, route }) => {
                 [{ text: 'OK', onPress: () => navigation.goBack() }]
             );
         } catch (e) {
-            Alert.alert('Error', 'Failed to save listing. Please try again.');
+            Alert.alert('Error', e.message || 'Failed to save listing. Please try again.');
         } finally {
             setLoading(false);
         }

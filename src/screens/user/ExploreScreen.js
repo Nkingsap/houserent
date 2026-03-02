@@ -16,7 +16,7 @@ import SearchBar from '../../components/SearchBar';
 import FilterPanel from '../../components/FilterPanel';
 import HouseCard from '../../components/HouseCard';
 import EmptyState from '../../components/EmptyState';
-import { searchListings, getFavorites, toggleFavorite } from '../../services/storageService';
+import { apiGetListings, apiGetFavorites, apiToggleFavorite } from '../../services/apiService';
 import { useAuth } from '../../context/AuthContext';
 
 const { width } = Dimensions.get('window');
@@ -51,16 +51,17 @@ const ExploreScreen = ({ navigation, route }) => {
     const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
 
     const doSearch = async () => {
-        const data = await searchListings(query, {
-            ...(filters.type && { type: filters.type }),
-            ...(filters.minPrice && { minPrice: filters.minPrice }),
-            ...(filters.maxPrice && { maxPrice: filters.maxPrice }),
-            ...(filters.bedrooms && { bedrooms: filters.bedrooms }),
+        const { listings: data } = await apiGetListings({
+            q: query || undefined,
+            type: filters.type || undefined,
+            minPrice: filters.minPrice || undefined,
+            maxPrice: filters.maxPrice || undefined,
+            bedrooms: filters.bedrooms || undefined,
         });
         setResults(data.filter((l) => l.available));
         if (user) {
-            const favs = await getFavorites(user.id);
-            setFavorites(favs);
+            const { favorites } = await apiGetFavorites(user.id);
+            setFavorites(favorites);
         }
     };
 
@@ -72,8 +73,9 @@ const ExploreScreen = ({ navigation, route }) => {
 
     const handleFavorite = async (listingId) => {
         if (!user) return;
-        const updated = await toggleFavorite(user.id, listingId);
-        setFavorites(updated);
+        await apiToggleFavorite(user.id, listingId);
+        const { favorites } = await apiGetFavorites(user.id);
+        setFavorites(favorites);
     };
 
     const activeFiltersCount = [filters.type, filters.minPrice, filters.bedrooms].filter(Boolean).length;
