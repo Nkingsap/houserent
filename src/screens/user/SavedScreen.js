@@ -39,7 +39,7 @@ const SavedScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+            <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
             <View style={styles.header}>
                 <Text style={styles.title}>Saved</Text>

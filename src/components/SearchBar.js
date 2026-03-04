@@ -14,12 +14,14 @@ const SearchBar = ({ value, onChangeText, onSubmit, placeholder, style }) => {
 
     return (
         <View style={[styles.container, focused && styles.focused, style]}>
-            <Ionicons
-                name="search"
-                size={20}
-                color={focused ? colors.text : colors.textMuted}
-                style={styles.icon}
-            />
+            <TouchableOpacity onPress={onSubmit} disabled={!onSubmit} activeOpacity={onSubmit ? 0.6 : 1}>
+                <Ionicons
+                    name="search"
+                    size={20}
+                    color={focused ? colors.text : colors.textMuted}
+                    style={styles.icon}
+                />
+            </TouchableOpacity>
             <TextInput
                 style={styles.input}
                 value={value}
@@ -45,15 +47,22 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: colors.elevated,
+        backgroundColor: colors.card,
         borderRadius: borderRadius.xl,
         paddingHorizontal: spacing.lg,
         height: 48,
-        borderWidth: 1,
+        borderWidth: 1.5,
         borderColor: colors.border,
+        ...{
+            shadowColor: '#0A0A0F',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.05,
+            shadowRadius: 4,
+            elevation: 1,
+        },
     },
     focused: {
-        borderColor: colors.textMuted,
+        borderColor: colors.text,
     },
     icon: {
         marginRight: spacing.sm,
@@ -68,5 +77,6 @@ const styles = StyleSheet.create({
         marginLeft: spacing.sm,
     },
 });
+
 
 export default SearchBar;

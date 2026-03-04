@@ -37,7 +37,7 @@ const OwnerProfileScreen = () => {
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+            <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
             <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={styles.header}>
@@ -167,14 +167,14 @@ const styles = StyleSheet.create({
         width: 88,
         height: 88,
         borderRadius: 44,
-        backgroundColor: colors.elevated,
+        backgroundColor: colors.text,
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 2,
+        borderWidth: 3,
         borderColor: colors.border,
         marginBottom: spacing.lg,
     },
-    avatarLargeText: { fontSize: 36, fontWeight: '700', color: colors.text },
+    avatarLargeText: { fontSize: 36, fontWeight: '700', color: colors.card },
     userName: { ...typography.h2, marginBottom: spacing.xs },
     userEmail: { ...typography.body, color: colors.textMuted, marginBottom: spacing.md },
     roleBadge: {
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: spacing.sm,
     },
-    saveBtnText: { color: colors.background, fontSize: 15, fontWeight: '700' },
+    saveBtnText: { color: '#FFFFFF', fontSize: 15, fontWeight: '700' },
     infoCards: { gap: spacing.sm },
     infoCard: {
         flexDirection: 'row',
@@ -247,9 +247,11 @@ const styles = StyleSheet.create({
         width: 36,
         height: 36,
         borderRadius: 10,
-        backgroundColor: colors.elevated,
+        backgroundColor: colors.surface,
         justifyContent: 'center',
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: colors.border,
     },
     menuLabel: { ...typography.bodyBold },
     logoutBtn: {

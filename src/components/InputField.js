@@ -76,15 +76,15 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: colors.elevated,
+        backgroundColor: colors.card,
         borderRadius: borderRadius.md,
         paddingHorizontal: spacing.lg,
         height: 52,
-        borderWidth: 1,
+        borderWidth: 1.5,
         borderColor: colors.border,
     },
     focused: {
-        borderColor: colors.textMuted,
+        borderColor: colors.text,
     },
     error: {
         borderColor: colors.danger,

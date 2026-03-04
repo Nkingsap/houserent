@@ -1,0 +1,38 @@
+{
+    "cli": {
+        "version": ">= 12.0.0"
+    },
+    "build": {
+        "development": {
+            "developmentClient": true,
+            "distribution": "internal",
+            "android": {
+                "buildType": "apk"
+            },
+            "env": {
+                "GOOGLE_MAPS_API_KEY": "AIzaSyBSjgY5an0RID08O7ERZL9iXBNLO89xbYA"
+            }
+        },
+        "preview": {
+            "developmentClient": false,
+            "distribution": "internal",
+            "android": {
+                "buildType": "apk"
+            },
+            "env": {
+                "GOOGLE_MAPS_API_KEY": "AIzaSyBSjgY5an0RID08O7ERZL9iXBNLO89xbYA"
+            }
+        },
+        "production": {
+            "android": {
+                "buildType": "app-bundle"
+            },
+            "env": {
+                "GOOGLE_MAPS_API_KEY": "AIzaSyBSjgY5an0RID08O7ERZL9iXBNLO89xbYA"
+            }
+        }
+    },
+    "submit": {
+        "production": {}
+    }
+}

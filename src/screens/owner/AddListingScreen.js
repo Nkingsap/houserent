@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     View,
     Text,
@@ -10,9 +10,13 @@ import {
     Image,
     KeyboardAvoidingView,
     Platform,
+    Modal,
+    ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as Location from 'expo-location';
 import MapView, { Marker } from '../../components/MapViewWrapper';
 import { colors, spacing, borderRadius, typography } from '../../theme';
 import InputField from '../../components/InputField';
@@ -20,42 +24,7 @@ import LoadingOverlay from '../../components/LoadingOverlay';
 import { apiCreateListing, apiUpdateListing, apiUploadImage } from '../../services/apiService';
 import { useAuth } from '../../context/AuthContext';
 
-const colorMapStyle = [
-    // Base land — warm sandy cream
-    { elementType: 'geometry', stylers: [{ color: '#f5e6c8' }] },
-    // Labels
-    { elementType: 'labels.text.fill', stylers: [{ color: '#2c2c2c' }] },
-    { elementType: 'labels.text.stroke', stylers: [{ color: '#ffffff' }, { weight: 3 }] },
-    // Local roads — soft off-white
-    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#fefefe' }] },
-    { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#e0c97a' }, { weight: 1 }] },
-    // Arterial roads — vibrant amber
-    { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#ffca28' }] },
-    { featureType: 'road.arterial', elementType: 'geometry.stroke', stylers: [{ color: '#f59e0b' }, { weight: 1.5 }] },
-    // Highways — bold orange
-    { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#ff7043' }] },
-    { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#bf360c' }, { weight: 1.5 }] },
-    { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#ffffff' }] },
-    // Water — vivid teal-blue
-    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#29b6f6' }] },
-    { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#0277bd' }] },
-    // Parks & nature — lush emerald
-    { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#66bb6a' }] },
-    { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#1b5e20' }] },
-    { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#a5d6a7' }] },
-    // Other POI — soft lavender
-    { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#e1bee7' }] },
-    { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#6a1b9a' }] },
-    // Transit — vivid purple
-    { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#ce93d8' }] },
-    { featureType: 'transit.station', elementType: 'labels.text.fill', stylers: [{ color: '#7b1fa2' }] },
-    // Administrative borders
-    { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#b0bec5' }, { weight: 1.5 }] },
-    { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#455a64' }] },
-    // Buildings
-    { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#efebe9' }] },
-    { featureType: 'landscape.man_made', elementType: 'geometry.stroke', stylers: [{ color: '#d7ccc8' }] },
-];
+
 
 const AMENITIES_LIST = [
     'WiFi', 'AC', 'Parking', 'Gym', 'Pool', 'Security',
@@ -75,6 +44,22 @@ const AddListingScreen = ({ navigation, route }) => {
 
     const [loading, setLoading] = useState(false);
     const [step, setStep] = useState(1); // 1: Details, 2: Photos & Location
+    const [fullscreenMap, setFullscreenMap] = useState(false);
+    const [mapType, setMapType] = useState('hybrid');
+    const mapRef = useRef(null);
+    const fsMapRef = useRef(null);
+
+    // Confirm-location sheet state
+    const [pendingCoord, setPendingCoord] = useState(null);
+    const [pendingAddress, setPendingAddress] = useState('');
+    const [geocoding, setGeocoding] = useState(false);
+    const [confirmVisible, setConfirmVisible] = useState(false);
+    const [locationAddress, setLocationAddress] = useState('');
+
+    // Use-my-location state
+    const [locating, setLocating] = useState(false);
+    const [nearbySuggestions, setNearbySuggestions] = useState([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
 
     // Form state
     const [title, setTitle] = useState(editingListing?.title || '');
@@ -96,12 +81,188 @@ const AddListingScreen = ({ navigation, route }) => {
 
     const [errors, setErrors] = useState({});
 
+    // Reset form when opened fresh for a new listing
+    useEffect(() => {
+        if (!editingListing) {
+            setTitle('');
+            setDescription('');
+            setPrice('');
+            setType('apartment');
+            setBedrooms('');
+            setBathrooms('');
+            setArea('');
+            setAddress('');
+            setCity('');
+            setAmenities([]);
+            setFurnished(false);
+            setImages([]);
+            setLocation({ latitude: 12.9716, longitude: 77.5946 });
+            setStep(1);
+            setErrors({});
+        }
+    }, [route.params]);
+
+    // ── Use Current Location ──────────────────────────────────────────────
+    const useMyLocation = async () => {
+        setLocating(true);
+        try {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                Alert.alert('Permission denied', 'Location permission is required to use this feature.');
+                return;
+            }
+            const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+            const { latitude, longitude } = pos.coords;
+
+            // Move the map pin
+            setLocation({ latitude, longitude });
+            mapRef.current?.animateToRegion({ latitude, longitude, latitudeDelta: 0.02, longitudeDelta: 0.02 }, 500);
+
+            // Reverse-geocode to fill address & city
+            const geocoded = await reverseGeocode(latitude, longitude);
+            if (geocoded) setLocationAddress(geocoded);
+
+            // Fill address & city from Nominatim
+            try {
+                const res = await fetch(
+                    `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1`,
+                    { headers: { 'Accept-Language': 'en', 'User-Agent': 'HouseRentApp/1.0' } }
+                );
+                const data = await res.json();
+                if (data?.address) {
+                    const a = data.address;
+                    const road = a.road || a.pedestrian || a.footway || '';
+                    const neighbourhood = a.neighbourhood || a.suburb || a.quarter || '';
+                    const detectedCity = a.city || a.town || a.village || a.county || '';
+                    const street = [road, neighbourhood].filter(Boolean).join(', ');
+                    if (street && !address) setAddress(street);
+                    if (detectedCity && !city) setCity(detectedCity);
+                }
+            } catch (_) { }
+
+            // Fetch nearby place suggestions
+            fetchNearbySuggestions(latitude, longitude);
+        } catch (e) {
+            Alert.alert('Location Error', e.message || 'Unable to get current location.');
+        } finally {
+            setLocating(false);
+        }
+    };
+
+    const fetchNearbySuggestions = async (lat, lon) => {
+        try {
+            const res = await fetch(
+                `https://nominatim.openstreetmap.org/search?q=residential&lat=${lat}&lon=${lon}&format=json&limit=5&addressdetails=1&viewbox=${lon - 0.05},${lat + 0.05},${lon + 0.05},${lat - 0.05}&bounded=1`,
+                { headers: { 'Accept-Language': 'en', 'User-Agent': 'HouseRentApp/1.0' } }
+            );
+            const data = await res.json();
+            if (Array.isArray(data) && data.length > 0) {
+                setNearbySuggestions(data.slice(0, 5));
+                setShowSuggestions(true);
+            } else {
+                // fallback: just show the current address as suggestion
+                const geocoded = await reverseGeocode(lat, lon);
+                if (geocoded) {
+                    setNearbySuggestions([{ display_name: geocoded, lat: lat.toString(), lon: lon.toString() }]);
+                    setShowSuggestions(true);
+                }
+            }
+        } catch (_) { }
+    };
+
+    const applySuggestion = (suggestion) => {
+        const lat = parseFloat(suggestion.lat);
+        const lon = parseFloat(suggestion.lon);
+        setLocation({ latitude: lat, longitude: lon });
+        mapRef.current?.animateToRegion({ latitude: lat, longitude: lon, latitudeDelta: 0.015, longitudeDelta: 0.015 }, 400);
+        const a = suggestion.address || {};
+        const road = a.road || a.pedestrian || '';
+        const neighbourhood = a.neighbourhood || a.suburb || '';
+        const detectedCity = a.city || a.town || a.village || '';
+        const street = [road, neighbourhood].filter(Boolean).join(', ');
+        if (street) setAddress(street);
+        if (detectedCity) setCity(detectedCity);
+        setLocationAddress(suggestion.display_name);
+        setShowSuggestions(false);
+    };
+    // ─────────────────────────────────────────────────────────────────────────
+
     const toggleAmenity = (amenity) => {
         setAmenities((prev) =>
             prev.includes(amenity)
                 ? prev.filter((a) => a !== amenity)
                 : [...prev, amenity]
         );
+    };
+
+    // Reverse-geocode using Nominatim (OpenStreetMap) — no API key needed
+    const reverseGeocode = async (lat, lon) => {
+        try {
+            const res = await fetch(
+                `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`,
+                { headers: { 'Accept-Language': 'en', 'User-Agent': 'HouseRentApp/1.0' } }
+            );
+            if (!res.ok) throw new Error('Nominatim HTTP ' + res.status);
+            const data = await res.json();
+            if (data && data.address) {
+                const a = data.address;
+                const parts = [
+                    a.road || a.pedestrian || a.footway,
+                    a.neighbourhood || a.suburb || a.quarter,
+                    a.city || a.town || a.village || a.county,
+                    a.state,
+                ].filter(Boolean);
+                const unique = parts.filter((v, i) => v !== parts[i - 1]);
+                return unique.join(', ') || data.display_name;
+            }
+        } catch (_) {
+            // fallback to expo-location
+        }
+        // Fallback: expo-location native geocoder
+        try {
+            const results = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lon });
+            if (results && results.length > 0) {
+                const r = results[0];
+                const parts = [
+                    r.name, r.street,
+                    r.district || r.subregion,
+                    r.city, r.region,
+                ].filter(Boolean);
+                const unique = parts.filter((v, i) => v !== parts[i - 1]);
+                if (unique.length > 0) return unique.join(', ');
+            }
+        } catch (_) { /* ignore */ }
+        return null;
+    };
+
+    // Called when user long-presses on the map
+    const handleMapLongPress = async (coord) => {
+        setPendingCoord(coord);
+        setPendingAddress('');
+        setGeocoding(true);
+        setConfirmVisible(true);
+        try {
+            const address = await reverseGeocode(coord.latitude, coord.longitude);
+            setPendingAddress(
+                address || `${coord.latitude.toFixed(5)}, ${coord.longitude.toFixed(5)}`
+            );
+        } catch {
+            setPendingAddress(`${coord.latitude.toFixed(5)}, ${coord.longitude.toFixed(5)}`);
+        } finally {
+            setGeocoding(false);
+        }
+    };
+
+    const confirmLocation = () => {
+        if (pendingCoord) setLocation(pendingCoord);
+        if (pendingAddress) setLocationAddress(pendingAddress);
+        setConfirmVisible(false);
+        setPendingCoord(null);
+    };
+
+    const cancelConfirm = () => {
+        setConfirmVisible(false);
+        setPendingCoord(null);
     };
 
     const pickImage = async () => {
@@ -191,7 +352,7 @@ const AddListingScreen = ({ navigation, route }) => {
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+            <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
             <LoadingOverlay visible={loading} />
 
             {/* Header */}
@@ -309,6 +470,53 @@ const AddListingScreen = ({ navigation, route }) => {
                                 error={errors.area}
                             />
 
+                            {/* Use My Location Button */}
+                            <TouchableOpacity
+                                style={styles.useLocationBtn}
+                                onPress={useMyLocation}
+                                disabled={locating}
+                            >
+                                {locating ? (
+                                    <ActivityIndicator size="small" color={"#FFFFFF"} />
+                                ) : (
+                                    <Ionicons name="navigate" size={16} color={"#FFFFFF"} />
+                                )}
+                                <Text style={styles.useLocationBtnText}>
+                                    {locating ? 'Detecting location…' : 'Use My Current Location'}
+                                </Text>
+                            </TouchableOpacity>
+
+                            {/* Nearby Suggestions Sheet */}
+                            {showSuggestions && nearbySuggestions.length > 0 && (
+                                <View style={styles.suggestionsBox}>
+                                    <View style={styles.suggestionsHeader}>
+                                        <Ionicons name="pin" size={14} color={colors.primary || '#4fc3f7'} />
+                                        <Text style={styles.suggestionsTitle}>Nearby Places</Text>
+                                        <TouchableOpacity
+                                            onPress={() => setShowSuggestions(false)}
+                                            style={styles.suggestionsClose}
+                                        >
+                                            <Ionicons name="close" size={16} color={colors.textMuted} />
+                                        </TouchableOpacity>
+                                    </View>
+                                    {nearbySuggestions.map((s, i) => (
+                                        <TouchableOpacity
+                                            key={i}
+                                            style={[
+                                                styles.suggestionItem,
+                                                i < nearbySuggestions.length - 1 && styles.suggestionItemBorder,
+                                            ]}
+                                            onPress={() => applySuggestion(s)}
+                                        >
+                                            <Ionicons name="location-outline" size={14} color={colors.textMuted} />
+                                            <Text style={styles.suggestionText} numberOfLines={2}>
+                                                {s.display_name}
+                                            </Text>
+                                        </TouchableOpacity>
+                                    ))}
+                                </View>
+                            )}
+
                             <InputField
                                 label="ADDRESS"
                                 value={address}
@@ -369,7 +577,7 @@ const AddListingScreen = ({ navigation, route }) => {
 
                             <TouchableOpacity style={styles.nextBtn} onPress={handleNext}>
                                 <Text style={styles.nextBtnText}>Next: Photos & Location</Text>
-                                <Ionicons name="arrow-forward" size={20} color={colors.background} />
+                                <Ionicons name="arrow-forward" size={20} color={"#FFFFFF"} />
                             </TouchableOpacity>
                         </>
                     ) : (
@@ -401,35 +609,148 @@ const AddListingScreen = ({ navigation, route }) => {
                             {/* Location Picker */}
                             <View style={styles.section}>
                                 <Text style={styles.sectionLabel}>PIN LOCATION ON MAP</Text>
-                                <Text style={styles.sectionHint}>Long press on the map to set location</Text>
+                                <Text style={styles.sectionHint}>Long press on the map to set location · tap ⛶ to go fullscreen</Text>
                                 <View style={styles.mapContainer}>
                                     <MapView
+                                        ref={mapRef}
                                         style={styles.map}
-                                        latitude={location.latitude}
-                                        longitude={location.longitude}
                                         initialRegion={{
                                             ...location,
                                             latitudeDelta: 0.05,
                                             longitudeDelta: 0.05,
                                         }}
-                                        customMapStyle={colorMapStyle}
-                                        onLongPress={(e) => setLocation(e.nativeEvent.coordinate)}
+                                        mapType={mapType}
+                                        pitchEnabled={true}
+                                        rotateEnabled={true}
+                                        showsPointsOfInterest={true}
+                                        showsBuildings={true}
+                                        showsCompass={true}
+                                        showsUserLocation={true}
+                                        followsUserLocation={false}
+                                        showsMyLocationButton={false}
+                                        onLongPress={(e) => handleMapLongPress(e.nativeEvent.coordinate)}
                                     >
                                         <Marker coordinate={location}>
                                             <View style={styles.mapMarker}>
-                                                <Ionicons name="home" size={16} color={colors.background} />
+                                                <Ionicons name="home" size={16} color={"#FFFFFF"} />
                                             </View>
                                         </Marker>
                                     </MapView>
+
+                                    {/* Fullscreen button */}
+                                    <TouchableOpacity
+                                        style={styles.mapFullscreenBtn}
+                                        onPress={() => setFullscreenMap(true)}
+                                    >
+                                        <Ionicons name="expand" size={18} color="#fff" />
+                                    </TouchableOpacity>
+
+                                    {/* Map type toggle */}
+                                    <View style={styles.mapTypeRow}>
+                                        {['standard', 'hybrid', 'satellite'].map((t) => (
+                                            <TouchableOpacity
+                                                key={t}
+                                                style={[styles.mapTypeBtn, mapType === t && styles.mapTypeBtnActive]}
+                                                onPress={() => setMapType(t)}
+                                            >
+                                                <Text style={[styles.mapTypeTxt, mapType === t && styles.mapTypeTxtActive]}>
+                                                    {t.charAt(0).toUpperCase() + t.slice(1)}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
                                 </View>
-                                <Text style={styles.coordsText}>
-                                    {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
-                                </Text>
+                                <View style={styles.coordsRow}>
+                                    <Ionicons name="location" size={13} color={colors.primary || '#4fc3f7'} />
+                                    <Text style={styles.coordsText} numberOfLines={2}>
+                                        {locationAddress
+                                            ? locationAddress
+                                            : `${location.latitude.toFixed(5)}, ${location.longitude.toFixed(5)}`}
+                                    </Text>
+                                </View>
                             </View>
+
+                            {/* ───── Fullscreen Map Modal ───── */}
+                            <Modal
+                                visible={fullscreenMap}
+                                animationType="slide"
+                                statusBarTranslucent
+                                onRequestClose={() => setFullscreenMap(false)}
+                            >
+                                <SafeAreaView style={styles.fsContainer}>
+                                    <StatusBar barStyle="light-content" backgroundColor="#000" translucent />
+
+                                    <MapView
+                                        ref={fsMapRef}
+                                        style={StyleSheet.absoluteFillObject}
+                                        initialRegion={{
+                                            ...location,
+                                            latitudeDelta: 0.05,
+                                            longitudeDelta: 0.05,
+                                        }}
+                                        mapType={mapType}
+                                        pitchEnabled={true}
+                                        rotateEnabled={true}
+                                        showsPointsOfInterest={true}
+                                        showsBuildings={true}
+                                        showsCompass={true}
+                                        showsMyLocationButton={false}
+                                        showsScale={true}
+                                        showsUserLocation={true}
+                                        followsUserLocation={false}
+                                        onLongPress={(e) => handleMapLongPress(e.nativeEvent.coordinate)}
+                                    >
+                                        <Marker coordinate={location}>
+                                            <View style={styles.mapMarker}>
+                                                <Ionicons name="home" size={16} color={"#FFFFFF"} />
+                                            </View>
+                                        </Marker>
+                                    </MapView>
+
+                                    {/* Close */}
+                                    <TouchableOpacity
+                                        style={styles.fsCloseBtn}
+                                        onPress={() => setFullscreenMap(false)}
+                                    >
+                                        <Ionicons name="close" size={22} color="#fff" />
+                                    </TouchableOpacity>
+
+                                    {/* Hint chip */}
+                                    <View style={styles.fsHintChip}>
+                                        <Ionicons name="hand-left-outline" size={14} color="#fff" />
+                                        <Text style={styles.fsHintText}>Long press to pin location</Text>
+                                    </View>
+
+                                    {/* Coords strip */}
+                                    <View style={styles.fsCoordsChip}>
+                                        <Ionicons name="location" size={13} color="#4fc3f7" />
+                                        <Text style={styles.fsCoordsText} numberOfLines={2}>
+                                            {locationAddress
+                                                ? locationAddress
+                                                : `${location.latitude.toFixed(5)}, ${location.longitude.toFixed(5)}`}
+                                        </Text>
+                                    </View>
+
+                                    {/* Map type strip */}
+                                    <View style={styles.fsMapTypeRow}>
+                                        {['standard', 'hybrid', 'satellite'].map((t) => (
+                                            <TouchableOpacity
+                                                key={t}
+                                                style={[styles.fsMapTypeBtn, mapType === t && styles.fsMapTypeBtnActive]}
+                                                onPress={() => setMapType(t)}
+                                            >
+                                                <Text style={[styles.fsMapTypeTxt, mapType === t && styles.fsMapTypeTxtActive]}>
+                                                    {t.charAt(0).toUpperCase() + t.slice(1)}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        ))}
+                                    </View>
+                                </SafeAreaView>
+                            </Modal>
 
                             {/* Save Button */}
                             <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
-                                <Ionicons name="checkmark-circle" size={22} color={colors.background} />
+                                <Ionicons name="checkmark-circle" size={22} color={"#FFFFFF"} />
                                 <Text style={styles.saveBtnText}>
                                     {isEditing ? 'Update Listing' : 'Publish Listing'}
                                 </Text>
@@ -438,6 +759,64 @@ const AddListingScreen = ({ navigation, route }) => {
                     )}
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            {/* ───── Confirm Location Bottom Sheet ───── */}
+            <Modal
+                visible={confirmVisible}
+                transparent
+                animationType="slide"
+                onRequestClose={cancelConfirm}
+            >
+                <TouchableOpacity
+                    style={styles.confirmOverlay}
+                    activeOpacity={1}
+                    onPress={cancelConfirm}
+                >
+                    <TouchableOpacity activeOpacity={1} style={styles.confirmSheet}>
+                        {/* Handle bar */}
+                        <View style={styles.sheetHandle} />
+
+                        {/* Header */}
+                        <View style={styles.sheetHeader}>
+                            <View style={styles.sheetIconWrap}>
+                                <Ionicons name="location" size={22} color="#fff" />
+                            </View>
+                            <Text style={styles.sheetTitle}>Confirm Location?</Text>
+                        </View>
+
+                        {/* Address block */}
+                        <View style={styles.sheetAddressBox}>
+                            {geocoding ? (
+                                <View style={styles.sheetLoading}>
+                                    <Ionicons name="sync-outline" size={18} color={colors.textMuted} />
+                                    <Text style={styles.sheetLoadingText}>Fetching address…</Text>
+                                </View>
+                            ) : (
+                                <>
+                                    <Text style={styles.sheetAddressLabel}>SELECTED LOCATION</Text>
+                                    <Text style={styles.sheetAddressText}>{pendingAddress}</Text>
+                                </>
+                            )}
+                        </View>
+
+                        {/* Buttons */}
+                        <View style={styles.sheetBtnRow}>
+                            <TouchableOpacity style={styles.sheetCancelBtn} onPress={cancelConfirm}>
+                                <Ionicons name="arrow-back" size={16} color={colors.text} />
+                                <Text style={styles.sheetCancelTxt}>Re-pick</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.sheetConfirmBtn, geocoding && styles.sheetConfirmBtnDisabled]}
+                                onPress={confirmLocation}
+                                disabled={geocoding}
+                            >
+                                <Ionicons name="checkmark" size={18} color="#fff" />
+                                <Text style={styles.sheetConfirmTxt}>Confirm Location</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </TouchableOpacity>
+                </TouchableOpacity>
+            </Modal>
         </View>
     );
 };
@@ -527,7 +906,7 @@ const styles = StyleSheet.create({
         color: colors.textSecondary,
     },
     typeBtnTextActive: {
-        color: colors.background,
+        color: '#FFFFFF',
     },
     row: {
         flexDirection: 'row',
@@ -596,7 +975,7 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     amenityChipTextActive: {
-        color: colors.background,
+        color: '#FFFFFF',
         fontWeight: '600',
     },
     nextBtn: {
@@ -609,7 +988,7 @@ const styles = StyleSheet.create({
         gap: spacing.sm,
     },
     nextBtnText: {
-        color: colors.background,
+        color: '#FFFFFF',
         fontSize: 16,
         fontWeight: '700',
     },
@@ -656,6 +1035,65 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    // Use My Location
+    useLocationBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#1565c0',
+        height: 46,
+        borderRadius: borderRadius.md,
+        gap: spacing.sm,
+        marginBottom: spacing.md,
+    },
+    useLocationBtnText: {
+        color: '#fff',
+        fontSize: 14,
+        fontWeight: '700',
+    },
+    suggestionsBox: {
+        backgroundColor: colors.elevated,
+        borderRadius: borderRadius.md,
+        borderWidth: 1,
+        borderColor: colors.border,
+        marginBottom: spacing.md,
+        overflow: 'hidden',
+    },
+    suggestionsHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+        gap: spacing.xs,
+    },
+    suggestionsTitle: {
+        ...typography.caption,
+        fontWeight: '700',
+        flex: 1,
+        color: colors.textSecondary,
+    },
+    suggestionsClose: {
+        padding: 2,
+    },
+    suggestionItem: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        gap: spacing.xs,
+    },
+    suggestionItemBorder: {
+        borderBottomWidth: 1,
+        borderBottomColor: colors.border,
+    },
+    suggestionText: {
+        ...typography.caption,
+        color: colors.textSecondary,
+        flex: 1,
+        lineHeight: 18,
+    },
     mapContainer: {
         height: 250,
         borderRadius: borderRadius.lg,
@@ -665,6 +1103,124 @@ const styles = StyleSheet.create({
     },
     map: {
         flex: 1,
+    },
+    mapFullscreenBtn: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        width: 38,
+        height: 38,
+        borderRadius: 9,
+        backgroundColor: 'rgba(0,0,0,0.65)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    mapTypeRow: {
+        position: 'absolute',
+        bottom: 10,
+        alignSelf: 'center',
+        flexDirection: 'row',
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        borderRadius: 18,
+        padding: 3,
+        gap: 2,
+    },
+    mapTypeBtn: {
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 14,
+    },
+    mapTypeBtnActive: {
+        backgroundColor: '#fff',
+    },
+    mapTypeTxt: {
+        fontSize: 11,
+        fontWeight: '600',
+        color: 'rgba(255,255,255,0.75)',
+    },
+    mapTypeTxtActive: {
+        color: '#111',
+    },
+    // ── Fullscreen Modal ──
+    fsContainer: {
+        flex: 1,
+        backgroundColor: '#000',
+    },
+    fsCloseBtn: {
+        position: 'absolute',
+        top: 52,
+        left: 16,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: 'rgba(0,0,0,0.65)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
+    fsHintChip: {
+        position: 'absolute',
+        top: 62,
+        alignSelf: 'center',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        backgroundColor: 'rgba(0,0,0,0.65)',
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 20,
+        zIndex: 10,
+    },
+    fsHintText: {
+        color: '#fff',
+        fontSize: 13,
+        fontWeight: '600',
+    },
+    fsCoordsChip: {
+        position: 'absolute',
+        top: 110,
+        alignSelf: 'center',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+        backgroundColor: 'rgba(0,0,0,0.55)',
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 16,
+        zIndex: 10,
+    },
+    fsCoordsText: {
+        color: '#4fc3f7',
+        fontSize: 12,
+        fontWeight: '600',
+        fontVariant: ['tabular-nums'],
+    },
+    fsMapTypeRow: {
+        position: 'absolute',
+        bottom: 40,
+        alignSelf: 'center',
+        flexDirection: 'row',
+        backgroundColor: 'rgba(0,0,0,0.65)',
+        borderRadius: 24,
+        padding: 4,
+        gap: 2,
+        zIndex: 10,
+    },
+    fsMapTypeBtn: {
+        paddingHorizontal: 16,
+        paddingVertical: 7,
+        borderRadius: 20,
+    },
+    fsMapTypeBtnActive: {
+        backgroundColor: '#fff',
+    },
+    fsMapTypeTxt: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: 'rgba(255,255,255,0.75)',
+    },
+    fsMapTypeTxtActive: {
+        color: '#111',
     },
     mapMarker: {
         width: 40,
@@ -681,11 +1237,17 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 6,
     },
+    coordsRow: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        marginTop: spacing.sm,
+        gap: spacing.xs,
+        paddingHorizontal: spacing.xs,
+    },
     coordsText: {
         ...typography.caption,
         color: colors.textMuted,
-        marginTop: spacing.sm,
-        textAlign: 'center',
+        flex: 1,
     },
     saveBtn: {
         flexDirection: 'row',
@@ -697,8 +1259,125 @@ const styles = StyleSheet.create({
         gap: spacing.sm,
     },
     saveBtnText: {
-        color: colors.background,
+        color: '#FFFFFF',
         fontSize: 16,
+        fontWeight: '700',
+    },
+
+    // ── Confirm Location Bottom Sheet ──
+    confirmOverlay: {
+        flex: 1,
+        justifyContent: 'flex-end',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    confirmSheet: {
+        backgroundColor: colors.card,
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        paddingHorizontal: spacing.xl,
+        paddingBottom: 36,
+        paddingTop: spacing.md,
+        borderTopWidth: 1,
+        borderColor: colors.border,
+    },
+    sheetHandle: {
+        width: 40,
+        height: 4,
+        borderRadius: 2,
+        backgroundColor: colors.border,
+        alignSelf: 'center',
+        marginBottom: spacing.lg,
+    },
+    sheetHeader: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.md,
+        marginBottom: spacing.lg,
+    },
+    sheetIconWrap: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: '#e53935',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    sheetTitle: {
+        ...typography.h3,
+        fontSize: 18,
+    },
+    sheetAddressBox: {
+        backgroundColor: colors.elevated,
+        borderRadius: borderRadius.md,
+        padding: spacing.lg,
+        marginBottom: spacing.xl,
+        borderWidth: 1,
+        borderColor: colors.border,
+        minHeight: 80,
+        justifyContent: 'center',
+    },
+    sheetLoading: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+    },
+    sheetLoadingText: {
+        ...typography.body,
+        color: colors.textMuted,
+    },
+    sheetAddressLabel: {
+        ...typography.small,
+        color: colors.textMuted,
+        marginBottom: spacing.xs,
+        letterSpacing: 0.5,
+    },
+    sheetAddressText: {
+        ...typography.bodyBold,
+        fontSize: 15,
+        lineHeight: 22,
+        marginBottom: spacing.xs,
+    },
+    sheetCoords: {
+        ...typography.caption,
+        color: colors.textMuted,
+        fontVariant: ['tabular-nums'],
+    },
+    sheetBtnRow: {
+        flexDirection: 'row',
+        gap: spacing.md,
+    },
+    sheetCancelBtn: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: spacing.xs,
+        height: 52,
+        borderRadius: borderRadius.lg,
+        backgroundColor: colors.elevated,
+        borderWidth: 1,
+        borderColor: colors.border,
+    },
+    sheetCancelTxt: {
+        ...typography.bodyBold,
+        fontSize: 15,
+    },
+    sheetConfirmBtn: {
+        flex: 2,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: spacing.sm,
+        height: 52,
+        borderRadius: borderRadius.lg,
+        backgroundColor: '#e53935',
+    },
+    sheetConfirmBtnDisabled: {
+        opacity: 0.5,
+    },
+    sheetConfirmTxt: {
+        color: '#fff',
+        fontSize: 15,
         fontWeight: '700',
     },
 });

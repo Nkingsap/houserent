@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+
 import { colors, spacing, borderRadius, typography } from '../../theme';
 import SearchBar from '../../components/SearchBar';
 import HouseCard from '../../components/HouseCard';
@@ -24,6 +25,7 @@ const HomeScreen = ({ navigation }) => {
     const [favorites, setFavorites] = useState([]);
     const [search, setSearch] = useState('');
     const [refreshing, setRefreshing] = useState(false);
+
 
     const loadData = async () => {
         const { listings: all } = await apiGetListings();
@@ -39,6 +41,7 @@ const HomeScreen = ({ navigation }) => {
     useFocusEffect(
         useCallback(() => {
             loadData();
+            setSearch(''); // clear search text on every visit
         }, [])
     );
 
@@ -59,6 +62,10 @@ const HomeScreen = ({ navigation }) => {
         navigation.navigate('Explore', { query: search });
     };
 
+    const handleMapView = () => {
+        navigation.navigate('Explore', { viewMode: 'map' });
+    };
+
     const quickFilters = [
         { label: 'Apartments', icon: 'business-outline', type: 'apartment' },
         { label: 'Villas', icon: 'home-outline', type: 'villa' },
@@ -67,7 +74,7 @@ const HomeScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+            <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
             <ScrollView
                 showsVerticalScrollIndicator={false}
@@ -103,12 +110,22 @@ const HomeScreen = ({ navigation }) => {
 
                 {/* Search */}
                 <View style={styles.searchSection}>
-                    <SearchBar
-                        value={search}
-                        onChangeText={setSearch}
-                        onSubmit={handleSearch}
-                        placeholder="Search by location, name..."
-                    />
+                    <View style={{ flex: 1 }}>
+                        <SearchBar
+                            value={search}
+                            onChangeText={setSearch}
+                            onSubmit={handleSearch}
+                            placeholder="Search by location, name..."
+                        />
+                    </View>
+                    <TouchableOpacity
+                        style={styles.mapBtn}
+                        onPress={handleMapView}
+                        activeOpacity={0.8}
+                    >
+                        <Ionicons name="map" size={15} color={"#FFFFFF"} />
+                        <Text style={styles.mapBtnText}>Map</Text>
+                    </TouchableOpacity>
                 </View>
 
                 {/* Quick Category Filters */}
@@ -161,7 +178,7 @@ const HomeScreen = ({ navigation }) => {
                 {/* All Listings */}
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.sectionTitle}>Nearby Rentals</Text>
+                        <Text style={styles.sectionTitle}>All Listings</Text>
                         <Text style={styles.countBadge}>{listings.length}</Text>
                     </View>
                     <View style={styles.listingsList}>
@@ -218,19 +235,38 @@ const styles = StyleSheet.create({
         width: 48,
         height: 48,
         borderRadius: 24,
-        backgroundColor: colors.elevated,
+        backgroundColor: colors.text,
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 1.5,
+        borderWidth: 2,
         borderColor: colors.border,
     },
     avatarText: {
         ...typography.h3,
-        color: colors.text,
+        color: colors.card,
     },
     searchSection: {
         paddingHorizontal: spacing.xl,
         marginBottom: spacing.xl,
+        flexDirection: 'row',
+        gap: spacing.sm,
+        alignItems: 'center',
+    },
+    mapBtn: {
+        height: 48,
+        borderRadius: borderRadius.md,
+        backgroundColor: colors.text,
+        justifyContent: 'center',
+        alignItems: 'center',
+        flexShrink: 0,
+        flexDirection: 'row',
+        gap: 5,
+        paddingHorizontal: 14,
+    },
+    mapBtnText: {
+        color: '#FFFFFF',
+        fontSize: 13,
+        fontWeight: '700',
     },
     categorySection: {
         marginBottom: spacing.xl,
@@ -251,8 +287,15 @@ const styles = StyleSheet.create({
         backgroundColor: colors.card,
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 1,
+        borderWidth: 1.5,
         borderColor: colors.border,
+        ...{
+            shadowColor: '#0A0A0F',
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.06,
+            shadowRadius: 6,
+            elevation: 2,
+        },
     },
     categoryLabel: {
         ...typography.caption,
@@ -280,11 +323,13 @@ const styles = StyleSheet.create({
     countBadge: {
         ...typography.caption,
         color: colors.textMuted,
-        backgroundColor: colors.elevated,
+        backgroundColor: colors.surface,
         paddingHorizontal: spacing.md,
         paddingVertical: spacing.xs,
         borderRadius: borderRadius.full,
         overflow: 'hidden',
+        borderWidth: 1,
+        borderColor: colors.border,
     },
     listingsList: {
         paddingHorizontal: spacing.xl,

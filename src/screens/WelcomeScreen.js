@@ -42,7 +42,7 @@ const WelcomeScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+            <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
             {/* Background decorative elements */}
             <View style={styles.bgCircle1} />
@@ -62,7 +62,7 @@ const WelcomeScreen = ({ navigation }) => {
                 <View style={styles.logoContainer}>
                     <View style={styles.logoOuter}>
                         <View style={styles.logoInner}>
-                            <Ionicons name="home" size={36} color={colors.background} />
+                            <Ionicons name="home" size={36} color={"#FFFFFF"} />
                         </View>
                     </View>
                 </View>
@@ -94,7 +94,7 @@ const WelcomeScreen = ({ navigation }) => {
                     activeOpacity={0.8}
                 >
                     <Text style={styles.primaryBtnText}>Get Started</Text>
-                    <Ionicons name="arrow-forward" size={20} color={colors.background} />
+                    <Ionicons name="arrow-forward" size={20} color={"#FFFFFF"} />
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
         height: 300,
         borderRadius: 150,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.04)',
+        borderColor: 'rgba(10,10,15,0.06)',
     },
     bgCircle2: {
         position: 'absolute',
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
         height: 250,
         borderRadius: 125,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.03)',
+        borderColor: 'rgba(10,10,15,0.04)',
     },
     bgLine1: {
         position: 'absolute',
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         height: 1,
-        backgroundColor: 'rgba(255,255,255,0.02)',
+        backgroundColor: 'rgba(10,10,15,0.05)',
     },
     bgLine2: {
         position: 'absolute',
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         height: 1,
-        backgroundColor: 'rgba(255,255,255,0.02)',
+        backgroundColor: 'rgba(10,10,15,0.05)',
     },
     content: {
         paddingHorizontal: spacing.xxl,
@@ -165,11 +165,11 @@ const styles = StyleSheet.create({
         width: 80,
         height: 80,
         borderRadius: 24,
-        backgroundColor: 'rgba(255,255,255,0.08)',
+        backgroundColor: 'rgba(10,10,15,0.06)',
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        borderColor: 'rgba(10,10,15,0.1)',
     },
     logoInner: {
         width: 56,
@@ -227,7 +227,7 @@ const styles = StyleSheet.create({
         marginBottom: spacing.lg,
     },
     primaryBtnText: {
-        color: colors.background,
+        color: '#FFFFFF',
         fontSize: 17,
         fontWeight: '700',
     },

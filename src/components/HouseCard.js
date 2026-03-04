@@ -13,7 +13,7 @@ import { colors, spacing, borderRadius, typography, shadows } from '../theme';
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - spacing.xl * 2;
 
-const HouseCard = ({ listing, onPress, onFavorite, isFavorited, compact }) => {
+const HouseCard = ({ listing, onPress, onFavorite, isFavorited, compact, distanceKm }) => {
     const formatPrice = (price) => {
         if (price >= 1000) return `₹${(price / 1000).toFixed(price % 1000 === 0 ? 0 : 1)}K`;
         return `₹${price}`;
@@ -31,7 +31,7 @@ const HouseCard = ({ listing, onPress, onFavorite, isFavorited, compact }) => {
                         <Image source={{ uri: listing.images[0] }} style={styles.compactImage} />
                     ) : (
                         <View style={styles.compactPlaceholder}>
-                            <Ionicons name="home-outline" size={24} color={colors.textMuted} />
+                            <Ionicons name="home-outline" size={24} color={colors.cardDarkTextMuted} />
                         </View>
                     )}
                     <View style={styles.compactPriceBadge}>
@@ -47,15 +47,15 @@ const HouseCard = ({ listing, onPress, onFavorite, isFavorited, compact }) => {
                     </Text>
                     <View style={styles.compactSpecs}>
                         <View style={styles.specItem}>
-                            <Ionicons name="bed-outline" size={12} color={colors.textMuted} />
+                            <Ionicons name="bed-outline" size={12} color={colors.cardDarkTextMuted} />
                             <Text style={styles.specText}>{listing.bedrooms}</Text>
                         </View>
                         <View style={styles.specItem}>
-                            <Ionicons name="water-outline" size={12} color={colors.textMuted} />
+                            <Ionicons name="water-outline" size={12} color={colors.cardDarkTextMuted} />
                             <Text style={styles.specText}>{listing.bathrooms}</Text>
                         </View>
                         <View style={styles.specItem}>
-                            <Ionicons name="resize-outline" size={12} color={colors.textMuted} />
+                            <Ionicons name="resize-outline" size={12} color={colors.cardDarkTextMuted} />
                             <Text style={styles.specText}>{listing.area} ft²</Text>
                         </View>
                     </View>
@@ -96,7 +96,7 @@ const HouseCard = ({ listing, onPress, onFavorite, isFavorited, compact }) => {
                         <Ionicons
                             name={isFavorited ? 'heart' : 'heart-outline'}
                             size={22}
-                            color={isFavorited ? colors.danger : colors.text}
+                            color={isFavorited ? colors.danger : '#FFFFFF'}
                         />
                     </TouchableOpacity>
                 )}
@@ -106,6 +106,17 @@ const HouseCard = ({ listing, onPress, onFavorite, isFavorited, compact }) => {
                         <Text style={styles.furnishedText}>Furnished</Text>
                     </View>
                 )}
+
+                {distanceKm != null && (
+                    <View style={styles.distanceBadge}>
+                        <Ionicons name="navigate" size={10} color="#FFFFFF" />
+                        <Text style={styles.distanceText}>
+                            {distanceKm < 1
+                                ? `${Math.round(distanceKm * 1000)}m`
+                                : `${distanceKm.toFixed(1)}km`}{' away'}
+                        </Text>
+                    </View>
+                )}
             </View>
 
             <View style={styles.info}>
@@ -113,7 +124,7 @@ const HouseCard = ({ listing, onPress, onFavorite, isFavorited, compact }) => {
                     {listing.title}
                 </Text>
                 <View style={styles.addressRow}>
-                    <Ionicons name="location-outline" size={14} color={colors.textMuted} />
+                    <Ionicons name="location-outline" size={14} color={colors.cardDarkTextMuted} />
                     <Text style={styles.address} numberOfLines={1}>
                         {listing.address}, {listing.city}
                     </Text>
@@ -123,17 +134,17 @@ const HouseCard = ({ listing, onPress, onFavorite, isFavorited, compact }) => {
 
                 <View style={styles.specs}>
                     <View style={styles.specItem}>
-                        <Ionicons name="bed-outline" size={16} color={colors.textSecondary} />
+                        <Ionicons name="bed-outline" size={16} color={colors.cardDarkTextSecondary} />
                         <Text style={styles.specValue}>{listing.bedrooms} Beds</Text>
                     </View>
                     <View style={styles.specDot} />
                     <View style={styles.specItem}>
-                        <Ionicons name="water-outline" size={16} color={colors.textSecondary} />
+                        <Ionicons name="water-outline" size={16} color={colors.cardDarkTextSecondary} />
                         <Text style={styles.specValue}>{listing.bathrooms} Baths</Text>
                     </View>
                     <View style={styles.specDot} />
                     <View style={styles.specItem}>
-                        <Ionicons name="resize-outline" size={16} color={colors.textSecondary} />
+                        <Ionicons name="resize-outline" size={16} color={colors.cardDarkTextSecondary} />
                         <Text style={styles.specValue}>{listing.area} ft²</Text>
                     </View>
                 </View>
@@ -145,17 +156,17 @@ const HouseCard = ({ listing, onPress, onFavorite, isFavorited, compact }) => {
 const styles = StyleSheet.create({
     // ─── Full Card ───
     card: {
-        backgroundColor: colors.card,
+        backgroundColor: colors.cardDark,
         borderRadius: borderRadius.lg,
         marginBottom: spacing.lg,
         overflow: 'hidden',
         borderWidth: 1,
-        borderColor: colors.border,
+        borderColor: colors.cardDarkBorder,
         ...shadows.medium,
     },
     imageContainer: {
         height: 200,
-        backgroundColor: colors.elevated,
+        backgroundColor: colors.cardDarkElevated,
         position: 'relative',
     },
     image: {
@@ -167,9 +178,11 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: colors.cardDarkElevated,
     },
     placeholderText: {
         ...typography.caption,
+        color: colors.cardDarkTextMuted,
         marginTop: spacing.xs,
     },
     imageBadges: {
@@ -187,12 +200,13 @@ const styles = StyleSheet.create({
     },
     priceText: {
         ...typography.price,
+        color: '#FFFFFF',
         fontSize: 18,
     },
     priceUnit: {
         ...typography.caption,
         marginLeft: 2,
-        color: colors.textSecondary,
+        color: 'rgba(255,255,255,0.6)',
     },
     favoriteBtn: {
         position: 'absolute',
@@ -215,17 +229,37 @@ const styles = StyleSheet.create({
         borderRadius: borderRadius.sm,
     },
     furnishedText: {
-        color: colors.background,
+        color: '#FFFFFF',
         fontSize: 11,
         fontWeight: '700',
         textTransform: 'uppercase',
         letterSpacing: 0.5,
+    },
+    distanceBadge: {
+        position: 'absolute',
+        bottom: spacing.md,
+        right: spacing.md,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 3,
+        backgroundColor: 'rgba(0,0,0,0.72)',
+        paddingHorizontal: spacing.sm,
+        paddingVertical: spacing.xs,
+        borderRadius: borderRadius.sm,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.25)',
+    },
+    distanceText: {
+        color: '#FFFFFF',
+        fontSize: 11,
+        fontWeight: '700',
     },
     info: {
         padding: spacing.lg,
     },
     title: {
         ...typography.h3,
+        color: colors.cardDarkText,
         marginBottom: spacing.xs,
     },
     addressRow: {
@@ -235,11 +269,12 @@ const styles = StyleSheet.create({
     },
     address: {
         ...typography.caption,
+        color: colors.cardDarkTextMuted,
         flex: 1,
     },
     divider: {
         height: 1,
-        backgroundColor: colors.border,
+        backgroundColor: colors.cardDarkBorder,
         marginVertical: spacing.md,
     },
     specs: {
@@ -253,30 +288,30 @@ const styles = StyleSheet.create({
     },
     specValue: {
         ...typography.caption,
-        color: colors.textSecondary,
+        color: colors.cardDarkTextSecondary,
     },
     specDot: {
         width: 3,
         height: 3,
         borderRadius: 1.5,
-        backgroundColor: colors.textMuted,
+        backgroundColor: colors.cardDarkTextMuted,
         marginHorizontal: spacing.sm,
     },
 
     // ─── Compact Card ───
     compactCard: {
         width: 200,
-        backgroundColor: colors.card,
+        backgroundColor: colors.cardDark,
         borderRadius: borderRadius.md,
         marginRight: spacing.md,
         overflow: 'hidden',
         borderWidth: 1,
-        borderColor: colors.border,
+        borderColor: colors.cardDarkBorder,
         ...shadows.small,
     },
     compactImageContainer: {
         height: 130,
-        backgroundColor: colors.elevated,
+        backgroundColor: colors.cardDarkElevated,
         position: 'relative',
     },
     compactImage: {
@@ -299,7 +334,7 @@ const styles = StyleSheet.create({
         borderRadius: borderRadius.sm,
     },
     compactPriceText: {
-        color: colors.text,
+        color: '#FFFFFF',
         fontSize: 13,
         fontWeight: '700',
     },
@@ -308,11 +343,13 @@ const styles = StyleSheet.create({
     },
     compactTitle: {
         ...typography.bodyBold,
+        color: colors.cardDarkText,
         fontSize: 14,
         marginBottom: 2,
     },
     compactAddress: {
         ...typography.caption,
+        color: colors.cardDarkTextMuted,
         fontSize: 11,
         marginBottom: spacing.xs,
     },
@@ -322,7 +359,7 @@ const styles = StyleSheet.create({
     },
     specText: {
         fontSize: 11,
-        color: colors.textMuted,
+        color: colors.cardDarkTextMuted,
         marginLeft: 2,
     },
 });

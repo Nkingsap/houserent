@@ -1,19 +1,39 @@
 export const colors = {
-  background: '#000000',
-  card: '#111111',
-  elevated: '#1A1A1A',
-  surface: '#222222',
-  border: '#2A2A2A',
-  borderLight: '#333333',
-  text: '#FFFFFF',
-  textSecondary: '#B0B0B0',
-  textMuted: '#666666',
-  accent: '#FFFFFF',
-  accentDim: 'rgba(255,255,255,0.1)',
-  danger: '#FF4444',
-  success: '#00CC66',
-  warning: '#FFB800',
-  overlay: 'rgba(0,0,0,0.7)',
+  // Backgrounds
+  background: '#FFFFFF',
+  card: '#FFFFFF',
+  elevated: '#F2F2F4',
+  surface: '#F0F0F2',
+
+  // Listing cards (light, on white background)
+  cardDark: '#FFFFFF',
+  cardDarkElevated: '#F5F5F7',
+  cardDarkBorder: '#E8E8EC',
+  cardDarkText: '#1A1A2E',
+  cardDarkTextSecondary: '#4A4A5A',
+  cardDarkTextMuted: '#8E8E9A',
+
+  // Borders – subtle
+  border: '#E4E4E7',
+  borderLight: '#F0F0F2',
+
+  // Text – rich dark scale
+  text: '#0A0A0F',
+  textSecondary: '#4B4B57',
+  textMuted: '#9696A0',
+
+  // Primary action – deep black
+  accent: '#0A0A0F',
+  accentDim: 'rgba(10,10,15,0.07)',
+
+  // Semantic
+  danger: '#E63946',
+  success: '#2D9B5A',
+  warning: '#E0A800',
+
+  // Overlays
+  overlay: 'rgba(10,10,15,0.55)',
+  overlayLight: 'rgba(10,10,15,0.04)',
   transparent: 'transparent',
 };
 
@@ -40,23 +60,25 @@ export const typography = {
     fontSize: 32,
     fontWeight: '800',
     color: colors.text,
-    letterSpacing: -0.5,
+    letterSpacing: -0.8,
   },
   h1: {
     fontSize: 28,
     fontWeight: '700',
     color: colors.text,
-    letterSpacing: -0.3,
+    letterSpacing: -0.5,
   },
   h2: {
     fontSize: 22,
     fontWeight: '700',
     color: colors.text,
+    letterSpacing: -0.3,
   },
   h3: {
     fontSize: 18,
     fontWeight: '600',
     color: colors.text,
+    letterSpacing: -0.1,
   },
   body: {
     fontSize: 15,
@@ -76,7 +98,7 @@ export const typography = {
   },
   small: {
     fontSize: 11,
-    fontWeight: '500',
+    fontWeight: '600',
     color: colors.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 1,
@@ -90,24 +112,24 @@ export const typography = {
 
 export const shadows = {
   small: {
-    shadowColor: '#000',
+    shadowColor: '#0A0A0F',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
     elevation: 3,
   },
   medium: {
-    shadowColor: '#000',
+    shadowColor: '#0A0A0F',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 6,
+    shadowOpacity: 0.1,
+    shadowRadius: 14,
+    elevation: 5,
   },
   large: {
-    shadowColor: '#000',
+    shadowColor: '#0A0A0F',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.5,
-    shadowRadius: 16,
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
     elevation: 10,
   },
 };

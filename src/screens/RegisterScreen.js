@@ -52,7 +52,7 @@ const RegisterScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+            <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
             <LoadingOverlay visible={loading} />
 
             <KeyboardAvoidingView
@@ -90,7 +90,7 @@ const RegisterScreen = ({ navigation }) => {
                                     <Ionicons
                                         name="search"
                                         size={24}
-                                        color={role === 'user' ? colors.background : colors.textMuted}
+                                        color={role === 'user' ? colors.card : colors.textMuted}
                                     />
                                 </View>
                                 <Text style={[styles.roleTitle, role === 'user' && styles.roleTitleActive]}>
@@ -108,7 +108,7 @@ const RegisterScreen = ({ navigation }) => {
                                     <Ionicons
                                         name="business"
                                         size={24}
-                                        color={role === 'owner' ? colors.background : colors.textMuted}
+                                        color={role === 'owner' ? colors.card : colors.textMuted}
                                     />
                                 </View>
                                 <Text style={[styles.roleTitle, role === 'owner' && styles.roleTitleActive]}>
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     },
     roleCardActive: {
         borderColor: colors.text,
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: colors.card,
     },
     roleIcon: {
         width: 48,
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
         marginBottom: spacing.xl,
     },
     registerBtnText: {
-        color: colors.background,
+        color: '#FFFFFF',
         fontSize: 17,
         fontWeight: '700',
     },

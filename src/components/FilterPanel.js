@@ -13,7 +13,7 @@ const FilterChip = ({ label, selected, onPress, icon }) => (
             <Ionicons
                 name={icon}
                 size={14}
-                color={selected ? colors.background : colors.textSecondary}
+                color={selected ? '#FFFFFF' : colors.textSecondary}
                 style={{ marginRight: 4 }}
             />
         )}
@@ -152,7 +152,7 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     chipTextSelected: {
-        color: colors.background,
+        color: '#FFFFFF',
         fontWeight: '600',
     },
 });

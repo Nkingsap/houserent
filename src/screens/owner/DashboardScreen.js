@@ -63,7 +63,7 @@ const DashboardScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+            <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
             <FlatList
                 data={listings}
@@ -90,7 +90,7 @@ const DashboardScreen = ({ navigation }) => {
                                 style={styles.addBtn}
                                 onPress={() => navigation.navigate('AddListing')}
                             >
-                                <Ionicons name="add" size={24} color={colors.background} />
+                                <Ionicons name="add" size={24} color={"#FFFFFF"} />
                             </TouchableOpacity>
                         </View>
 
@@ -208,10 +208,12 @@ const styles = StyleSheet.create({
         width: 40,
         height: 40,
         borderRadius: 12,
-        backgroundColor: colors.elevated,
+        backgroundColor: colors.surface,
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: spacing.sm,
+        borderWidth: 1,
+        borderColor: colors.border,
     },
     statValue: {
         ...typography.h2,

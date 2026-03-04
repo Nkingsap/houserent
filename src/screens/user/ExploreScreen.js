@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
     View,
     Text,
@@ -7,9 +7,13 @@ import {
     StyleSheet,
     StatusBar,
     Dimensions,
+    Modal,
+    ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
+import * as Location from 'expo-location';
 import MapView, { Marker } from '../../components/MapViewWrapper';
 import { colors, spacing, borderRadius, typography } from '../../theme';
 import SearchBar from '../../components/SearchBar';
@@ -21,42 +25,29 @@ import { useAuth } from '../../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
-const colorMapStyle = [
-    // Base land — warm sandy cream
-    { elementType: 'geometry', stylers: [{ color: '#f5e6c8' }] },
-    // Labels
-    { elementType: 'labels.text.fill', stylers: [{ color: '#2c2c2c' }] },
-    { elementType: 'labels.text.stroke', stylers: [{ color: '#ffffff' }, { weight: 3 }] },
-    // Local roads — soft off-white
-    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#fefefe' }] },
-    { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#e0c97a' }, { weight: 1 }] },
-    // Arterial roads — vibrant amber
-    { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#ffca28' }] },
-    { featureType: 'road.arterial', elementType: 'geometry.stroke', stylers: [{ color: '#f59e0b' }, { weight: 1.5 }] },
-    // Highways — bold orange
-    { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#ff7043' }] },
-    { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#bf360c' }, { weight: 1.5 }] },
-    { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#ffffff' }] },
-    // Water — vivid teal-blue
-    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#29b6f6' }] },
-    { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#0277bd' }] },
-    // Parks & nature — lush emerald
-    { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#66bb6a' }] },
-    { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#1b5e20' }] },
-    { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#a5d6a7' }] },
-    // Other POI — soft lavender
-    { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#e1bee7' }] },
-    { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#6a1b9a' }] },
-    // Transit — vivid purple
-    { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#ce93d8' }] },
-    { featureType: 'transit.station', elementType: 'labels.text.fill', stylers: [{ color: '#7b1fa2' }] },
-    // Administrative borders
-    { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#b0bec5' }, { weight: 1.5 }] },
-    { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#455a64' }] },
-    // Buildings
-    { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#efebe9' }] },
-    { featureType: 'landscape.man_made', elementType: 'geometry.stroke', stylers: [{ color: '#d7ccc8' }] },
-];
+
+
+// Haversine distance in km
+const haversine = (lat1, lon1, lat2, lon2) => {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos((lat1 * Math.PI) / 180) * Math.cos((lat2 * Math.PI) / 180) * Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+};
+
+// Step 1 – instant: last known (any age) or fast network fix
+// Step 2 – background: full GPS accuracy, silently updates results
+const getQuickLocation = async () => {
+    const last = await Location.getLastKnownPositionAsync();
+    if (last) return last;
+    return Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low });
+};
+
+const getAccurateLocation = () =>
+    Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
 
 const ExploreScreen = ({ navigation, route }) => {
     const { user } = useAuth();
@@ -70,7 +61,67 @@ const ExploreScreen = ({ navigation, route }) => {
     const [results, setResults] = useState([]);
     const [favorites, setFavorites] = useState([]);
     const [showFilters, setShowFilters] = useState(false);
-    const [viewMode, setViewMode] = useState('list'); // 'list' or 'map'
+    const [viewMode, setViewMode] = useState(route.params?.viewMode || 'list'); // 'list' or 'map'
+    const [fullscreenMap, setFullscreenMap] = useState(false);
+    const [mapType, setMapType] = useState('hybrid');
+    const mapRef = useRef(null);
+    const fullscreenMapRef = useRef(null);
+
+    // Near Me
+    const [nearMe, setNearMe] = useState(false);
+    const [locating, setLocating] = useState(false);
+    const [locationRefreshing, setLocationRefreshing] = useState(false); // silent bg GPS refresh
+    const [userLocation, setUserLocation] = useState(null);
+    const [nearMeRadius, setNearMeRadius] = useState(20);
+
+    // Sync query from HomeScreen navigation param
+    useEffect(() => {
+        if (route.params?.query !== undefined) {
+            setQuery(route.params.query);
+        }
+    }, [route.params?.query]);
+
+    // Sync viewMode from navigation param (e.g. Map button on HomeScreen)
+    useEffect(() => {
+        if (route.params?.viewMode) {
+            setViewMode(route.params.viewMode);
+        }
+    }, [route.params?.viewMode]);
+
+    // Auto-trigger Near Me if navigated with nearMe param
+    useEffect(() => {
+        if (route.params?.nearMe) {
+            (async () => {
+                setLocating(true);
+                try {
+                    const { status } = await Location.requestForegroundPermissionsAsync();
+                    if (status !== 'granted') return;
+                    // Step 1: show results fast
+                    const quick = await getQuickLocation();
+                    const { latitude, longitude } = quick.coords;
+                    setUserLocation({ latitude, longitude });
+                    setNearMe(true);
+                    setTimeout(() => {
+                        mapRef.current?.animateToRegion({ latitude, longitude, latitudeDelta: 0.1, longitudeDelta: 0.1 }, 600);
+                        fullscreenMapRef.current?.animateToRegion({ latitude, longitude, latitudeDelta: 0.1, longitudeDelta: 0.1 }, 600);
+                    }, 300);
+                } finally {
+                    setLocating(false);
+                }
+                // Step 2: silently refresh with accurate GPS
+                try {
+                    setLocationRefreshing(true);
+                    const accurate = await getAccurateLocation();
+                    const { latitude, longitude } = accurate.coords;
+                    setUserLocation({ latitude, longitude });
+                } catch (_) {
+                    // best-effort – ignore if GPS unavailable
+                } finally {
+                    setLocationRefreshing(false);
+                }
+            })();
+        }
+    }, [route.params?.nearMe]);
 
     const doSearch = async () => {
         const { listings: data } = await apiGetListings({
@@ -80,17 +131,45 @@ const ExploreScreen = ({ navigation, route }) => {
             maxPrice: filters.maxPrice || undefined,
             bedrooms: filters.bedrooms || undefined,
         });
-        setResults(data.filter((l) => l.available));
+        let available = data.filter((l) => l.available);
+        // Filter & sort by distance when Near Me is on
+        if (nearMe && userLocation) {
+            available = available
+                .map((l) => ({
+                    ...l,
+                    _dist: haversine(userLocation.latitude, userLocation.longitude, l.latitude, l.longitude),
+                }))
+                .filter((l) => l._dist <= nearMeRadius)   // ← only within radius
+                .sort((a, b) => a._dist - b._dist);
+        }
+        setResults(available);
         if (user) {
             const { favorites } = await apiGetFavorites(user.id);
             setFavorites(favorites);
+        }
+
+        // When in map view with a search query, pan the map to that location
+        if (viewMode === 'map' && query.trim() && !nearMe) {
+            try {
+                const geocoded = await Location.geocodeAsync(query.trim());
+                if (geocoded.length > 0) {
+                    const { latitude, longitude } = geocoded[0];
+                    const region = { latitude, longitude, latitudeDelta: 0.08, longitudeDelta: 0.08 };
+                    setTimeout(() => {
+                        mapRef.current?.animateToRegion(region, 800);
+                        fullscreenMapRef.current?.animateToRegion(region, 800);
+                    }, 300);
+                }
+            } catch (_) {
+                // geocoding unavailable – silently ignore
+            }
         }
     };
 
     useFocusEffect(
         useCallback(() => {
             doSearch();
-        }, [query, filters])
+        }, [query, filters, nearMe, userLocation, nearMeRadius, viewMode])
     );
 
     const handleFavorite = async (listingId) => {
@@ -100,46 +179,117 @@ const ExploreScreen = ({ navigation, route }) => {
         setFavorites(favorites);
     };
 
+    const toggleNearMe = async () => {
+        if (nearMe) {
+            setNearMe(false);
+            setUserLocation(null);
+            setLocationRefreshing(false);
+            return;
+        }
+        setLocating(true);
+        try {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+                alert('Location permission is required for Near Me.');
+                return;
+            }
+            // Step 1: show results instantly with quick location
+            const quick = await getQuickLocation();
+            const { latitude, longitude } = quick.coords;
+            setUserLocation({ latitude, longitude });
+            setNearMe(true);
+            const region = { latitude, longitude, latitudeDelta: 0.1, longitudeDelta: 0.1 };
+            setTimeout(() => {
+                mapRef.current?.animateToRegion(region, 600);
+                fullscreenMapRef.current?.animateToRegion(region, 600);
+            }, 300);
+        } catch (e) {
+            alert('Unable to get location: ' + (e.message || ''));
+        } finally {
+            setLocating(false);
+        }
+        // Step 2: silently fetch accurate GPS in background
+        try {
+            setLocationRefreshing(true);
+            const accurate = await getAccurateLocation();
+            const { latitude, longitude } = accurate.coords;
+            setUserLocation({ latitude, longitude });
+        } catch (_) {
+            // best-effort – ignore if GPS unavailable
+        } finally {
+            setLocationRefreshing(false);
+        }
+    };
+
     const activeFiltersCount = [filters.type, filters.minPrice, filters.bedrooms].filter(Boolean).length;
 
-    const mapRegion = results.length > 0
+    const mapRegion = userLocation && nearMe
         ? {
-            latitude: results.reduce((s, l) => s + l.latitude, 0) / results.length,
-            longitude: results.reduce((s, l) => s + l.longitude, 0) / results.length,
-            latitudeDelta: 0.15,
-            longitudeDelta: 0.15,
+            latitude: userLocation.latitude,
+            longitude: userLocation.longitude,
+            latitudeDelta: 0.12,
+            longitudeDelta: 0.12,
         }
-        : {
-            latitude: 12.9716,
-            longitude: 77.5946,
-            latitudeDelta: 0.15,
-            longitudeDelta: 0.15,
-        };
+        : results.length > 0
+            ? {
+                latitude: results.reduce((s, l) => s + l.latitude, 0) / results.length,
+                longitude: results.reduce((s, l) => s + l.longitude, 0) / results.length,
+                latitudeDelta: 0.15,
+                longitudeDelta: 0.15,
+            }
+            : {
+                latitude: 12.9716,
+                longitude: 77.5946,
+                latitudeDelta: 0.15,
+                longitudeDelta: 0.15,
+            };
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+            <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
-            {/* Header */}
+            {/* Header: title + [Nearby | List | Map] segmented control */}
             <View style={styles.header}>
                 <Text style={styles.title}>Explore</Text>
-                <View style={styles.headerActions}>
+                <View style={styles.segmentedControl}>
+                    {/* Near Me */}
                     <TouchableOpacity
-                        style={[styles.viewToggle, viewMode === 'list' && styles.viewToggleActive]}
+                        style={[styles.segmentBtn, nearMe && styles.segmentBtnActive]}
+                        onPress={toggleNearMe}
+                        disabled={locating}
+                        activeOpacity={0.75}
+                    >
+                        {locating ? (
+                            <ActivityIndicator size="small" color={nearMe ? '#FFFFFF' : colors.textSecondary} style={{ width: 15, height: 15 }} />
+                        ) : (
+                            <Ionicons name={nearMe ? 'location' : 'location-outline'} size={15} color={nearMe ? '#FFFFFF' : colors.textSecondary} />
+                        )}
+                        <Text style={[styles.segmentBtnText, nearMe && styles.segmentBtnTextActive]}>Nearby</Text>
+                    </TouchableOpacity>
+
+                    <View style={styles.segmentDivider} />
+
+                    {/* List */}
+                    <TouchableOpacity
+                        style={[styles.segmentBtn, viewMode === 'list' && styles.segmentBtnActive]}
                         onPress={() => setViewMode('list')}
                     >
-                        <Ionicons name="list" size={18} color={viewMode === 'list' ? colors.background : colors.textSecondary} />
+                        <Ionicons name="list" size={15} color={viewMode === 'list' ? '#FFFFFF' : colors.textSecondary} />
+                        <Text style={[styles.segmentBtnText, viewMode === 'list' && styles.segmentBtnTextActive]}>List</Text>
                     </TouchableOpacity>
+
+                    {/* Map */}
                     <TouchableOpacity
-                        style={[styles.viewToggle, viewMode === 'map' && styles.viewToggleActive]}
+                        style={[styles.segmentBtn, viewMode === 'map' && styles.segmentBtnActive]}
                         onPress={() => setViewMode('map')}
                     >
-                        <Ionicons name="map" size={18} color={viewMode === 'map' ? colors.background : colors.textSecondary} />
+                        <Ionicons name="map" size={15} color={viewMode === 'map' ? '#FFFFFF' : colors.textSecondary} />
+                        <Text style={[styles.segmentBtnText, viewMode === 'map' && styles.segmentBtnTextActive]}>Map</Text>
                     </TouchableOpacity>
                 </View>
             </View>
 
-            {/* Search */}
+            {/* Search row: search bar + Filter button */}
             <View style={styles.searchRow}>
                 <View style={{ flex: 1 }}>
                     <SearchBar
@@ -148,14 +298,16 @@ const ExploreScreen = ({ navigation, route }) => {
                         onSubmit={doSearch}
                     />
                 </View>
+
+                {/* Filter button */}
                 <TouchableOpacity
-                    style={[styles.filterBtn, showFilters && styles.filterBtnActive]}
+                    style={[styles.iconBtn, showFilters && styles.iconBtnActive]}
                     onPress={() => setShowFilters(!showFilters)}
                 >
                     <Ionicons
                         name="options"
                         size={20}
-                        color={showFilters ? colors.background : colors.text}
+                        color={showFilters ? '#FFFFFF' : colors.text}
                     />
                     {activeFiltersCount > 0 && (
                         <View style={styles.filterBadge}>
@@ -165,14 +317,46 @@ const ExploreScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
             </View>
 
-            {/* Filters */}
+            {/* Filters panel */}
             {showFilters && (
                 <FilterPanel filters={filters} onFilterChange={setFilters} />
             )}
 
-            {/* Results Count */}
+            {/* Near Me active banner: radius selector + optional location-refreshing chip */}
+            {nearMe && (
+                <View style={styles.nearMeBanner}>
+                    <View style={styles.nearMeBannerLeft}>
+                        <Ionicons name="location" size={13} color={colors.text} />
+                        <Text style={styles.nearMeBannerLabel}>Within</Text>
+                    </View>
+                    <View style={styles.radiusChips}>
+                        {[5, 10, 20, 50].map((km) => (
+                            <TouchableOpacity
+                                key={km}
+                                style={[styles.radiusChip, nearMeRadius === km && styles.radiusChipActive]}
+                                onPress={() => setNearMeRadius(km)}
+                            >
+                                <Text style={[styles.radiusChipText, nearMeRadius === km && styles.radiusChipTextActive]}>
+                                    {km} km
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                    {locationRefreshing && (
+                        <View style={styles.refreshingChip}>
+                            <ActivityIndicator size="small" color={colors.textMuted} style={{ transform: [{ scale: 0.65 }] }} />
+                            <Text style={styles.refreshingText}>Updating…</Text>
+                        </View>
+                    )}
+                </View>
+            )}
+
+            {/* Results count bar */}
             <View style={styles.resultBar}>
-                <Text style={styles.resultCount}>{results.length} properties found</Text>
+                <Text style={styles.resultCount}>
+                    {results.length} {results.length === 1 ? 'property' : 'properties'} found
+                    {nearMe ? ` within ${nearMeRadius} km` : ''}
+                </Text>
                 {activeFiltersCount > 0 && (
                     <TouchableOpacity
                         onPress={() => setFilters({ type: null, minPrice: null, maxPrice: null, bedrooms: null })}
@@ -186,9 +370,13 @@ const ExploreScreen = ({ navigation, route }) => {
             {viewMode === 'list' ? (
                 results.length === 0 ? (
                     <EmptyState
-                        icon="search-outline"
-                        title="No properties found"
-                        subtitle="Try adjusting your search or filters"
+                        icon={nearMe ? 'location-outline' : 'search-outline'}
+                        title={nearMe ? `No properties within ${nearMeRadius}km` : 'No properties found'}
+                        subtitle={
+                            nearMe
+                                ? 'Try increasing the radius or disable Near Me to see all listings'
+                                : 'Try adjusting your search or filters'
+                        }
                     />
                 ) : (
                     <FlatList
@@ -202,6 +390,7 @@ const ExploreScreen = ({ navigation, route }) => {
                                 onPress={() => navigation.navigate('HouseDetail', { listing: item })}
                                 onFavorite={() => handleFavorite(item.id)}
                                 isFavorited={favorites.includes(item.id)}
+                                distanceKm={nearMe && item._dist != null ? item._dist : null}
                             />
                         )}
                     />
@@ -209,11 +398,18 @@ const ExploreScreen = ({ navigation, route }) => {
             ) : (
                 <View style={styles.mapContainer}>
                     <MapView
+                        ref={mapRef}
                         style={styles.map}
-                        latitude={mapRegion.latitude}
-                        longitude={mapRegion.longitude}
                         initialRegion={mapRegion}
-                        customMapStyle={colorMapStyle}
+                        mapType={mapType}
+                        pitchEnabled={true}
+                        rotateEnabled={true}
+                        showsPointsOfInterest={true}
+                        showsBuildings={true}
+                        showsCompass={true}
+                        showsUserLocation={true}
+                        followsUserLocation={nearMe}
+                        showsMyLocationButton={false}
                     >
                         {results.map((listing) => (
                             <Marker
@@ -237,8 +433,115 @@ const ExploreScreen = ({ navigation, route }) => {
                             </Marker>
                         ))}
                     </MapView>
+
+                    {/* Fullscreen button */}
+                    <TouchableOpacity
+                        style={styles.fullscreenBtn}
+                        onPress={() => setFullscreenMap(true)}
+                        activeOpacity={0.8}
+                    >
+                        <Ionicons name="expand-outline" size={16} color="#fff" />
+                        <Text style={styles.fullscreenBtnText}>Full Screen</Text>
+                    </TouchableOpacity>
+
+                    {/* Map type toggle */}
+                    <View style={styles.mapTypeRow}>
+                        {['standard', 'hybrid', 'satellite'].map((type) => (
+                            <TouchableOpacity
+                                key={type}
+                                style={[styles.mapTypeBtn, mapType === type && styles.mapTypeBtnActive]}
+                                onPress={() => setMapType(type)}
+                            >
+                                <Text style={[styles.mapTypeTxt, mapType === type && styles.mapTypeTxtActive]}>
+                                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
                 </View>
             )}
+
+            {/* ───── Fullscreen Map Modal ───── */}
+            <Modal
+                visible={fullscreenMap}
+                animationType="slide"
+                statusBarTranslucent
+                onRequestClose={() => setFullscreenMap(false)}
+            >
+                <SafeAreaView style={styles.fsContainer}>
+                    <StatusBar barStyle="light-content" backgroundColor="#000" translucent />
+
+                    <MapView
+                        ref={fullscreenMapRef}
+                        style={StyleSheet.absoluteFillObject}
+                        initialRegion={mapRegion}
+                        mapType={mapType}
+                        pitchEnabled={true}
+                        rotateEnabled={true}
+                        showsPointsOfInterest={true}
+                        showsBuildings={true}
+                        showsCompass={true}
+                        showsUserLocation={true}
+                        followsUserLocation={nearMe}
+                        showsMyLocationButton={false}
+                        showsScale={true}
+                    >
+                        {results.map((listing) => (
+                            <Marker
+                                key={listing.id}
+                                coordinate={{
+                                    latitude: listing.latitude,
+                                    longitude: listing.longitude,
+                                }}
+                                title={listing.title}
+                                description={`₹${listing.price.toLocaleString()}/mo`}
+                                onCalloutPress={() => {
+                                    setFullscreenMap(false);
+                                    navigation.navigate('HouseDetail', { listing });
+                                }}
+                            >
+                                <View style={styles.markerContainer}>
+                                    <View style={styles.marker}>
+                                        <Text style={styles.markerText}>
+                                            ₹{listing.price >= 1000 ? `${Math.round(listing.price / 1000)}K` : listing.price}
+                                        </Text>
+                                    </View>
+                                    <View style={styles.markerArrow} />
+                                </View>
+                            </Marker>
+                        ))}
+                    </MapView>
+
+                    {/* Close button */}
+                    <TouchableOpacity
+                        style={styles.fsCloseBtn}
+                        onPress={() => setFullscreenMap(false)}
+                    >
+                        <Ionicons name="close" size={22} color="#fff" />
+                    </TouchableOpacity>
+
+                    {/* Title chip */}
+                    <View style={styles.fsTitleChip}>
+                        <Ionicons name="map" size={14} color="#fff" />
+                        <Text style={styles.fsTitleText}>{results.length} Properties</Text>
+                    </View>
+
+                    {/* Map type strip */}
+                    <View style={styles.fsMapTypeRow}>
+                        {['standard', 'hybrid', 'satellite'].map((type) => (
+                            <TouchableOpacity
+                                key={type}
+                                style={[styles.fsMapTypeBtn, mapType === type && styles.fsMapTypeBtnActive]}
+                                onPress={() => setMapType(type)}
+                            >
+                                <Text style={[styles.fsMapTypeTxt, mapType === type && styles.fsMapTypeTxtActive]}>
+                                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+                </SafeAreaView>
+            </Modal>
         </View>
     );
 };
@@ -254,37 +557,79 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: spacing.xl,
         paddingTop: 60,
-        paddingBottom: spacing.md,
+        paddingBottom: spacing.sm,
     },
     title: {
         ...typography.h1,
     },
-    headerActions: {
+    // Near Me banner (shown when Near Me is active)
+    nearMeBanner: {
         flexDirection: 'row',
-        gap: spacing.xs,
-    },
-    viewToggle: {
-        width: 38,
-        height: 38,
-        borderRadius: 10,
-        backgroundColor: colors.elevated,
-        justifyContent: 'center',
         alignItems: 'center',
+        paddingHorizontal: spacing.xl,
+        paddingVertical: spacing.sm,
+        gap: spacing.sm,
+        backgroundColor: colors.elevated,
+        borderTopWidth: 1,
+        borderBottomWidth: 1,
+        borderColor: colors.border,
+        marginBottom: spacing.xs,
+    },
+    nearMeBannerLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+    },
+    nearMeBannerLabel: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: colors.textSecondary,
+    },
+    radiusChips: {
+        flexDirection: 'row',
+        gap: 6,
+        flex: 1,
+    },
+    radiusChip: {
+        paddingHorizontal: 12,
+        paddingVertical: 5,
+        borderRadius: 12,
         borderWidth: 1,
         borderColor: colors.border,
+        backgroundColor: colors.card,
     },
-    viewToggleActive: {
+    radiusChipActive: {
         backgroundColor: colors.text,
         borderColor: colors.text,
+    },
+    radiusChipText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: colors.textMuted,
+    },
+    radiusChipTextActive: {
+        color: '#FFFFFF',
+        fontWeight: '700',
+    },
+    refreshingChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    refreshingText: {
+        fontSize: 11,
+        color: colors.textMuted,
+        fontWeight: '500',
     },
     searchRow: {
         flexDirection: 'row',
         paddingHorizontal: spacing.xl,
-        marginBottom: spacing.md,
+        marginBottom: spacing.xs,
         gap: spacing.sm,
         alignItems: 'center',
     },
-    filterBtn: {
+    // Shared style for Near Me and Filter icon buttons
+    iconBtn: {
         width: 48,
         height: 48,
         borderRadius: borderRadius.md,
@@ -295,7 +640,7 @@ const styles = StyleSheet.create({
         borderColor: colors.border,
         position: 'relative',
     },
-    filterBtnActive: {
+    iconBtnActive: {
         backgroundColor: colors.text,
         borderColor: colors.text,
     },
@@ -311,7 +656,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     filterBadgeText: {
-        color: colors.text,
+        color: '#FFFFFF',
         fontSize: 10,
         fontWeight: '700',
     },
@@ -346,11 +691,154 @@ const styles = StyleSheet.create({
     map: {
         flex: 1,
     },
+    // List / Map segmented control
+    segmentedControl: {
+        flexDirection: 'row',
+        backgroundColor: colors.elevated,
+        borderRadius: 12,
+        padding: 3,
+        borderWidth: 1,
+        borderColor: colors.border,
+    },
+    segmentBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+        paddingHorizontal: 14,
+        paddingVertical: 7,
+        borderRadius: 10,
+    },
+    segmentBtnActive: {
+        backgroundColor: colors.text,
+    },
+    segmentBtnText: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: colors.textSecondary,
+    },
+    segmentBtnTextActive: {
+        color: '#FFFFFF',
+    },
+    segmentDivider: {
+        width: 1,
+        height: 18,
+        backgroundColor: colors.border,
+        alignSelf: 'center',
+        marginHorizontal: 2,
+    },
+    fullscreenBtn: {
+        position: 'absolute',
+        top: 12,
+        right: 12,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 20,
+        backgroundColor: 'rgba(0,0,0,0.72)',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.18)',
+    },
+    fullscreenBtnText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: '700',
+        letterSpacing: 0.3,
+    },
+    mapTypeRow: {
+        position: 'absolute',
+        bottom: 12,
+        alignSelf: 'center',
+        flexDirection: 'row',
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        borderRadius: 20,
+        padding: 3,
+        gap: 2,
+    },
+    mapTypeBtn: {
+        paddingHorizontal: 12,
+        paddingVertical: 5,
+        borderRadius: 16,
+    },
+    mapTypeBtnActive: {
+        backgroundColor: '#fff',
+    },
+    mapTypeTxt: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: 'rgba(255,255,255,0.75)',
+    },
+    mapTypeTxtActive: {
+        color: '#111',
+    },
+    // ── Fullscreen Modal ──
+    fsContainer: {
+        flex: 1,
+        backgroundColor: '#000',
+    },
+    fsCloseBtn: {
+        position: 'absolute',
+        top: 52,
+        left: 16,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: 'rgba(0,0,0,0.65)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
+    fsTitleChip: {
+        position: 'absolute',
+        top: 62,
+        alignSelf: 'center',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        backgroundColor: 'rgba(0,0,0,0.65)',
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 20,
+        zIndex: 10,
+    },
+    fsTitleText: {
+        color: '#fff',
+        fontSize: 13,
+        fontWeight: '600',
+    },
+    fsMapTypeRow: {
+        position: 'absolute',
+        bottom: 40,
+        alignSelf: 'center',
+        flexDirection: 'row',
+        backgroundColor: 'rgba(0,0,0,0.65)',
+        borderRadius: 24,
+        padding: 4,
+        gap: 2,
+        zIndex: 10,
+    },
+    fsMapTypeBtn: {
+        paddingHorizontal: 16,
+        paddingVertical: 7,
+        borderRadius: 20,
+    },
+    fsMapTypeBtnActive: {
+        backgroundColor: '#fff',
+    },
+    fsMapTypeTxt: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: 'rgba(255,255,255,0.75)',
+    },
+    fsMapTypeTxtActive: {
+        color: '#111',
+    },
     markerContainer: {
         alignItems: 'center',
     },
     marker: {
-        backgroundColor: '#3949ab',
+        backgroundColor: colors.text,
         paddingHorizontal: spacing.sm,
         paddingVertical: spacing.xs,
         borderRadius: borderRadius.sm,
@@ -361,7 +849,7 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     markerText: {
-        color: '#ffffff',
+        color: '#FFFFFF',
         fontSize: 12,
         fontWeight: '700',
     },
@@ -373,7 +861,7 @@ const styles = StyleSheet.create({
         borderTopWidth: 6,
         borderLeftColor: 'transparent',
         borderRightColor: 'transparent',
-        borderTopColor: '#3949ab',
+        borderTopColor: colors.text,
     },
 });
 

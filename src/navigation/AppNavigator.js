@@ -38,6 +38,11 @@ const UserTabs = () => (
                 height: 70,
                 paddingBottom: 10,
                 paddingTop: 8,
+                shadowColor: '#0A0A0F',
+                shadowOffset: { width: 0, height: -2 },
+                shadowOpacity: 0.05,
+                shadowRadius: 8,
+                elevation: 8,
             },
             tabBarActiveTintColor: colors.text,
             tabBarInactiveTintColor: colors.textMuted,
@@ -75,6 +80,11 @@ const OwnerTabs = () => (
                 height: 70,
                 paddingBottom: 10,
                 paddingTop: 8,
+                shadowColor: '#0A0A0F',
+                shadowOffset: { width: 0, height: -2 },
+                shadowOpacity: 0.05,
+                shadowRadius: 8,
+                elevation: 8,
             },
             tabBarActiveTintColor: colors.text,
             tabBarInactiveTintColor: colors.textMuted,
@@ -85,7 +95,6 @@ const OwnerTabs = () => (
             tabBarIcon: ({ color, size }) => {
                 const icons = {
                     Dashboard: 'grid',
-                    AddListing: 'add-circle',
                     OwnerProfile: 'person',
                 };
                 return <Ionicons name={icons[route.name]} size={22} color={color} />;
@@ -96,11 +105,6 @@ const OwnerTabs = () => (
             name="Dashboard"
             component={DashboardScreen}
             options={{ tabBarLabel: 'Dashboard' }}
-        />
-        <Tab.Screen
-            name="AddListing"
-            component={AddListingScreen}
-            options={{ tabBarLabel: 'Add Listing' }}
         />
         <Tab.Screen
             name="OwnerProfile"
@@ -132,7 +136,7 @@ const AppNavigator = () => {
                         />
                         {user.role === 'owner' && (
                             <Stack.Screen
-                                name="AddListingModal"
+                                name="AddListing"
                                 component={AddListingScreen}
                                 options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
                             />

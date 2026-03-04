@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
     View,
     Text,
@@ -10,7 +10,9 @@ import {
     Linking,
     Alert,
     Image,
+    Modal,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker } from '../../components/MapViewWrapper';
 import { colors, spacing, borderRadius, typography, shadows } from '../../theme';
@@ -20,48 +22,15 @@ import { useAuth } from '../../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
-const colorMapStyle = [
-    // Base land — warm sandy cream
-    { elementType: 'geometry', stylers: [{ color: '#f5e6c8' }] },
-    // Labels
-    { elementType: 'labels.text.fill', stylers: [{ color: '#2c2c2c' }] },
-    { elementType: 'labels.text.stroke', stylers: [{ color: '#ffffff' }, { weight: 3 }] },
-    // Local roads — soft off-white
-    { featureType: 'road', elementType: 'geometry', stylers: [{ color: '#fefefe' }] },
-    { featureType: 'road', elementType: 'geometry.stroke', stylers: [{ color: '#e0c97a' }, { weight: 1 }] },
-    // Arterial roads — vibrant amber
-    { featureType: 'road.arterial', elementType: 'geometry', stylers: [{ color: '#ffca28' }] },
-    { featureType: 'road.arterial', elementType: 'geometry.stroke', stylers: [{ color: '#f59e0b' }, { weight: 1.5 }] },
-    // Highways — bold orange
-    { featureType: 'road.highway', elementType: 'geometry', stylers: [{ color: '#ff7043' }] },
-    { featureType: 'road.highway', elementType: 'geometry.stroke', stylers: [{ color: '#bf360c' }, { weight: 1.5 }] },
-    { featureType: 'road.highway', elementType: 'labels.text.fill', stylers: [{ color: '#ffffff' }] },
-    // Water — vivid teal-blue
-    { featureType: 'water', elementType: 'geometry', stylers: [{ color: '#29b6f6' }] },
-    { featureType: 'water', elementType: 'labels.text.fill', stylers: [{ color: '#0277bd' }] },
-    // Parks & nature — lush emerald
-    { featureType: 'poi.park', elementType: 'geometry', stylers: [{ color: '#66bb6a' }] },
-    { featureType: 'poi.park', elementType: 'labels.text.fill', stylers: [{ color: '#1b5e20' }] },
-    { featureType: 'landscape.natural', elementType: 'geometry', stylers: [{ color: '#a5d6a7' }] },
-    // Other POI — soft lavender
-    { featureType: 'poi', elementType: 'geometry', stylers: [{ color: '#e1bee7' }] },
-    { featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#6a1b9a' }] },
-    // Transit — vivid purple
-    { featureType: 'transit', elementType: 'geometry', stylers: [{ color: '#ce93d8' }] },
-    { featureType: 'transit.station', elementType: 'labels.text.fill', stylers: [{ color: '#7b1fa2' }] },
-    // Administrative borders
-    { featureType: 'administrative', elementType: 'geometry.stroke', stylers: [{ color: '#b0bec5' }, { weight: 1.5 }] },
-    { featureType: 'administrative.locality', elementType: 'labels.text.fill', stylers: [{ color: '#455a64' }] },
-    // Buildings
-    { featureType: 'landscape.man_made', elementType: 'geometry', stylers: [{ color: '#efebe9' }] },
-    { featureType: 'landscape.man_made', elementType: 'geometry.stroke', stylers: [{ color: '#d7ccc8' }] },
-];
+
 
 const HouseDetailScreen = ({ navigation, route }) => {
     const { listing } = route.params;
     const { user } = useAuth();
     const [favorited, setFavorited] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [fullscreenMap, setFullscreenMap] = useState(false);
+    const [mapType, setMapType] = useState('hybrid');
 
     useEffect(() => {
         checkFavorite();
@@ -97,7 +66,7 @@ const HouseDetailScreen = ({ navigation, route }) => {
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+            <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
             <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
                 {/* Image Gallery */}
@@ -126,21 +95,21 @@ const HouseDetailScreen = ({ navigation, route }) => {
                     {/* Back & Actions Overlay */}
                     <View style={styles.topBar}>
                         <TouchableOpacity style={styles.topBtn} onPress={() => navigation.goBack()}>
-                            <Ionicons name="arrow-back" size={22} color={colors.text} />
+                            <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
                         </TouchableOpacity>
                         <View style={styles.topActions}>
                             <TouchableOpacity style={styles.topBtn} onPress={handleFavorite}>
                                 <Ionicons
                                     name={favorited ? 'heart' : 'heart-outline'}
                                     size={22}
-                                    color={favorited ? colors.danger : colors.text}
+                                    color={favorited ? colors.danger : '#FFFFFF'}
                                 />
                             </TouchableOpacity>
                             <TouchableOpacity
                                 style={styles.topBtn}
                                 onPress={() => Alert.alert('Shared!', 'Share functionality coming soon.')}
                             >
-                                <Ionicons name="share-outline" size={22} color={colors.text} />
+                                <Ionicons name="share-outline" size={22} color="#FFFFFF" />
                             </TouchableOpacity>
                         </View>
                     </View>
@@ -228,18 +197,22 @@ const HouseDetailScreen = ({ navigation, route }) => {
                         <View style={styles.mapContainer}>
                             <MapView
                                 style={styles.map}
-                                latitude={listing.latitude}
-                                longitude={listing.longitude}
-                                address={`${listing.address}, ${listing.city}`}
                                 initialRegion={{
                                     latitude: listing.latitude,
                                     longitude: listing.longitude,
                                     latitudeDelta: 0.01,
                                     longitudeDelta: 0.01,
                                 }}
-                                customMapStyle={colorMapStyle}
-                                scrollEnabled={false}
-                                zoomEnabled={false}
+                                mapType={mapType}
+                                pitchEnabled={true}
+                                rotateEnabled={true}
+                                scrollEnabled={true}
+                                zoomEnabled={true}
+                                showsPointsOfInterest={true}
+                                showsBuildings={true}
+                                showsCompass={true}
+                                showsUserLocation={true}
+                                showsMyLocationButton={false}
                             >
                                 <Marker
                                     coordinate={{
@@ -248,15 +221,111 @@ const HouseDetailScreen = ({ navigation, route }) => {
                                     }}
                                 >
                                     <View style={styles.mapMarker}>
-                                        <Ionicons name="home" size={16} color={colors.background} />
+                                        <Ionicons name="home" size={16} color={colors.card} />
                                     </View>
                                 </Marker>
                             </MapView>
+
+                            {/* Fullscreen button */}
+                            <TouchableOpacity
+                                style={styles.mapFullscreenBtn}
+                                onPress={() => setFullscreenMap(true)}
+                            >
+                                <Ionicons name="expand" size={18} color="#fff" />
+                            </TouchableOpacity>
+
+                            {/* Map type toggle */}
+                            <View style={styles.mapTypeRow}>
+                                {['standard', 'hybrid', 'satellite'].map((type) => (
+                                    <TouchableOpacity
+                                        key={type}
+                                        style={[styles.mapTypeBtn, mapType === type && styles.mapTypeBtnActive]}
+                                        onPress={() => setMapType(type)}
+                                    >
+                                        <Text style={[styles.mapTypeTxt, mapType === type && styles.mapTypeTxtActive]}>
+                                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
                         </View>
                         <Text style={styles.mapAddress}>
                             {listing.address}, {listing.city}
                         </Text>
                     </View>
+
+                    {/* Fullscreen Map Modal */}
+                    <Modal
+                        visible={fullscreenMap}
+                        animationType="slide"
+                        statusBarTranslucent
+                        onRequestClose={() => setFullscreenMap(false)}
+                    >
+                        <SafeAreaView style={styles.fsContainer}>
+                            <StatusBar barStyle="light-content" backgroundColor="#000" translucent />
+
+                            <MapView
+                                style={StyleSheet.absoluteFillObject}
+                                initialRegion={{
+                                    latitude: listing.latitude,
+                                    longitude: listing.longitude,
+                                    latitudeDelta: 0.01,
+                                    longitudeDelta: 0.01,
+                                }}
+                                mapType={mapType}
+                                pitchEnabled={true}
+                                rotateEnabled={true}
+                                showsPointsOfInterest={true}
+                                showsBuildings={true}
+                                showsCompass={true}
+                                showsUserLocation={true}
+                                showsMyLocationButton={false}
+                                showsScale={true}
+                            >
+                                <Marker
+                                    coordinate={{
+                                        latitude: listing.latitude,
+                                        longitude: listing.longitude,
+                                    }}
+                                >
+                                    <View style={styles.mapMarker}>
+                                        <Ionicons name="home" size={16} color={colors.card} />
+                                    </View>
+                                </Marker>
+                            </MapView>
+
+                            {/* Close */}
+                            <TouchableOpacity
+                                style={styles.fsCloseBtn}
+                                onPress={() => setFullscreenMap(false)}
+                            >
+                                <Ionicons name="close" size={22} color="#fff" />
+                            </TouchableOpacity>
+
+                            {/* Address chip */}
+                            <View style={styles.fsAddressChip}>
+                                <Ionicons name="location" size={14} color="#fff" />
+                                <Text style={styles.fsAddressText} numberOfLines={1}>
+                                    {listing.address}, {listing.city}
+                                </Text>
+                            </View>
+
+                            {/* Map type strip */}
+                            <View style={styles.fsMapTypeRow}>
+                                {['standard', 'hybrid', 'satellite'].map((type) => (
+                                    <TouchableOpacity
+                                        key={type}
+                                        style={[styles.fsMapTypeBtn, mapType === type && styles.fsMapTypeBtnActive]}
+                                        onPress={() => setMapType(type)}
+                                    >
+                                        <Text style={[styles.fsMapTypeTxt, mapType === type && styles.fsMapTypeTxtActive]}>
+                                            {type.charAt(0).toUpperCase() + type.slice(1)}
+                                        </Text>
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        </SafeAreaView>
+                    </Modal>
 
                     {/* Spacer for bottom bar */}
                     <View style={{ height: 100 }} />
@@ -274,7 +343,7 @@ const HouseDetailScreen = ({ navigation, route }) => {
                         <Ionicons name="chatbubble-outline" size={20} color={colors.text} />
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.contactBtn} onPress={handleCall}>
-                        <Ionicons name="call" size={18} color={colors.background} />
+                        <Ionicons name="call" size={18} color={"#FFFFFF"} />
                         <Text style={styles.contactBtnText}>Call Owner</Text>
                     </TouchableOpacity>
                 </View>
@@ -339,10 +408,10 @@ const styles = StyleSheet.create({
         width: 6,
         height: 6,
         borderRadius: 3,
-        backgroundColor: 'rgba(255,255,255,0.4)',
+        backgroundColor: 'rgba(255,255,255,0.45)',
     },
     dotActive: {
-        backgroundColor: colors.text,
+        backgroundColor: '#FFFFFF',
         width: 20,
     },
     content: {
@@ -465,11 +534,112 @@ const styles = StyleSheet.create({
     map: {
         flex: 1,
     },
+    mapFullscreenBtn: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        width: 38,
+        height: 38,
+        borderRadius: 9,
+        backgroundColor: 'rgba(0,0,0,0.65)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    mapTypeRow: {
+        position: 'absolute',
+        bottom: 10,
+        alignSelf: 'center',
+        flexDirection: 'row',
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        borderRadius: 18,
+        padding: 3,
+        gap: 2,
+    },
+    mapTypeBtn: {
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 14,
+    },
+    mapTypeBtnActive: {
+        backgroundColor: '#fff',
+    },
+    mapTypeTxt: {
+        fontSize: 11,
+        fontWeight: '600',
+        color: 'rgba(255,255,255,0.75)',
+    },
+    mapTypeTxtActive: {
+        color: '#111',
+    },
+    // ── Fullscreen Modal ──
+    fsContainer: {
+        flex: 1,
+        backgroundColor: '#000',
+    },
+    fsCloseBtn: {
+        position: 'absolute',
+        top: 52,
+        left: 16,
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        backgroundColor: 'rgba(0,0,0,0.65)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
+    fsAddressChip: {
+        position: 'absolute',
+        top: 62,
+        alignSelf: 'center',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 6,
+        backgroundColor: 'rgba(0,0,0,0.65)',
+        paddingHorizontal: 14,
+        paddingVertical: 8,
+        borderRadius: 20,
+        zIndex: 10,
+        maxWidth: '75%',
+    },
+    fsAddressText: {
+        color: '#fff',
+        fontSize: 13,
+        fontWeight: '600',
+        flexShrink: 1,
+    },
+    fsMapTypeRow: {
+        position: 'absolute',
+        bottom: 40,
+        alignSelf: 'center',
+        flexDirection: 'row',
+        backgroundColor: 'rgba(0,0,0,0.65)',
+        borderRadius: 24,
+        padding: 4,
+        gap: 2,
+        zIndex: 10,
+    },
+    fsMapTypeBtn: {
+        paddingHorizontal: 16,
+        paddingVertical: 7,
+        borderRadius: 20,
+    },
+    fsMapTypeBtnActive: {
+        backgroundColor: '#fff',
+    },
+    fsMapTypeTxt: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: 'rgba(255,255,255,0.75)',
+    },
+    fsMapTypeTxtActive: {
+        color: '#111',
+    },
     mapMarker: {
         width: 40,
         height: 40,
         borderRadius: 20,
-        backgroundColor: '#e53935',
+        backgroundColor: colors.text,
         justifyContent: 'center',
         alignItems: 'center',
         borderWidth: 3,
@@ -537,7 +707,7 @@ const styles = StyleSheet.create({
         gap: spacing.sm,
     },
     contactBtnText: {
-        color: colors.background,
+        color: '#FFFFFF',
         fontSize: 15,
         fontWeight: '700',
     },

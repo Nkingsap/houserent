@@ -45,7 +45,7 @@ const LoginScreen = ({ navigation }) => {
 
     return (
         <View style={styles.container}>
-            <StatusBar barStyle="light-content" backgroundColor={colors.background} />
+            <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
             <LoadingOverlay visible={loading} />
 
             <KeyboardAvoidingView
@@ -100,26 +100,7 @@ const LoginScreen = ({ navigation }) => {
                         <Text style={styles.loginBtnText}>Sign In</Text>
                     </TouchableOpacity>
 
-                    <View style={styles.dividerRow}>
-                        <View style={styles.divider} />
-                        <Text style={styles.dividerText}>OR</Text>
-                        <View style={styles.divider} />
-                    </View>
 
-                    <View style={styles.demoSection}>
-                        <Text style={styles.demoLabel}>QUICK DEMO ACCESS</Text>
-                        <TouchableOpacity
-                            style={styles.demoBtn}
-                            onPress={() => {
-                                setEmail('owner@demo.com');
-                                setPassword('password');
-                            }}
-                            activeOpacity={0.7}
-                        >
-                            <Ionicons name="key-outline" size={18} color={colors.textSecondary} />
-                            <Text style={styles.demoBtnText}>Use Demo Owner Account</Text>
-                        </TouchableOpacity>
-                    </View>
 
                     <TouchableOpacity
                         style={styles.registerLink}
@@ -181,47 +162,11 @@ const styles = StyleSheet.create({
         marginBottom: spacing.xl,
     },
     loginBtnText: {
-        color: colors.background,
+        color: '#FFFFFF',
         fontSize: 17,
         fontWeight: '700',
     },
-    dividerRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: spacing.xl,
-    },
-    divider: {
-        flex: 1,
-        height: 1,
-        backgroundColor: colors.border,
-    },
-    dividerText: {
-        ...typography.small,
-        marginHorizontal: spacing.lg,
-        color: colors.textMuted,
-    },
-    demoSection: {
-        marginBottom: spacing.xxl,
-    },
-    demoLabel: {
-        ...typography.small,
-        marginBottom: spacing.sm,
-    },
-    demoBtn: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: colors.elevated,
-        paddingHorizontal: spacing.lg,
-        paddingVertical: spacing.md,
-        borderRadius: borderRadius.md,
-        gap: spacing.sm,
-        borderWidth: 1,
-        borderColor: colors.border,
-    },
-    demoBtnText: {
-        ...typography.body,
-        color: colors.textSecondary,
-    },
+
     registerLink: {
         alignItems: 'center',
         paddingVertical: spacing.sm,
