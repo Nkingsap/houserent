@@ -13,7 +13,7 @@ import { colors, spacing, borderRadius, typography } from '../../theme';
 import InputField from '../../components/InputField';
 import { useAuth } from '../../context/AuthContext';
 
-const OwnerProfileScreen = () => {
+const OwnerProfileScreen = ({ navigation }) => {
     const { user, logout, updateProfile } = useAuth();
     const [editing, setEditing] = useState(false);
     const [name, setName] = useState(user?.name || '');
@@ -118,14 +118,15 @@ const OwnerProfileScreen = () => {
                     <Text style={styles.sectionTitle}>Settings</Text>
                     <View style={styles.menuCard}>
                         {[
-                            { icon: 'notifications-outline', label: 'Notifications' },
-                            { icon: 'shield-checkmark-outline', label: 'Privacy & Security' },
-                            { icon: 'help-circle-outline', label: 'Help & Support' },
-                            { icon: 'information-circle-outline', label: 'About' },
+                            { icon: 'notifications-outline', label: 'Notifications', onPress: () => navigation.navigate('Notifications') },
+                            { icon: 'shield-checkmark-outline', label: 'Privacy & Security', onPress: () => navigation.navigate('PrivacySecurity') },
+                            { icon: 'help-circle-outline', label: 'Help & Support', onPress: () => navigation.navigate('HelpSupport') },
+                            { icon: 'information-circle-outline', label: 'About', onPress: () => navigation.navigate('About') },
                         ].map((item, i, arr) => (
                             <TouchableOpacity
                                 key={i}
                                 style={[styles.menuItem, i < arr.length - 1 && styles.menuItemBorder]}
+                                onPress={item.onPress}
                                 activeOpacity={0.7}
                             >
                                 <View style={styles.menuItemLeft}>
@@ -176,7 +177,7 @@ const styles = StyleSheet.create({
     },
     avatarLargeText: { fontSize: 36, fontWeight: '700', color: colors.card },
     userName: { ...typography.h2, marginBottom: spacing.xs },
-    userEmail: { ...typography.body, color: colors.textMuted, marginBottom: spacing.md },
+    userEmail: { ...typography.body, color: colors.textSecondary, marginBottom: spacing.md },
     roleBadge: {
         flexDirection: 'row',
         alignItems: 'center',

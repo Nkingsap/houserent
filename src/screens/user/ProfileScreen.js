@@ -13,11 +13,14 @@ import { colors, spacing, borderRadius, typography } from '../../theme';
 import InputField from '../../components/InputField';
 import { useAuth } from '../../context/AuthContext';
 
+
+
 const ProfileScreen = ({ navigation }) => {
     const { user, logout, updateProfile } = useAuth();
     const [editing, setEditing] = useState(false);
     const [name, setName] = useState(user?.name || '');
     const [phone, setPhone] = useState(user?.phone || '');
+
 
     const handleSave = async () => {
         if (!name.trim()) {
@@ -36,10 +39,10 @@ const ProfileScreen = ({ navigation }) => {
     };
 
     const menuItems = [
-        { icon: 'notifications-outline', label: 'Notifications', onPress: () => { } },
-        { icon: 'shield-checkmark-outline', label: 'Privacy & Security', onPress: () => { } },
-        { icon: 'help-circle-outline', label: 'Help & Support', onPress: () => { } },
-        { icon: 'information-circle-outline', label: 'About', onPress: () => { } },
+        { icon: 'notifications-outline', label: 'Notifications', onPress: () => navigation.navigate('Notifications') },
+        { icon: 'shield-checkmark-outline', label: 'Privacy & Security', onPress: () => navigation.navigate('PrivacySecurity') },
+        { icon: 'help-circle-outline', label: 'Help & Support', onPress: () => navigation.navigate('HelpSupport') },
+        { icon: 'information-circle-outline', label: 'About', onPress: () => navigation.navigate('About') },
     ];
 
     return (
@@ -153,6 +156,8 @@ const ProfileScreen = ({ navigation }) => {
 
                 <View style={{ height: spacing.xxxl }} />
             </ScrollView>
+
+
         </View>
     );
 };
@@ -196,7 +201,7 @@ const styles = StyleSheet.create({
     },
     userEmail: {
         ...typography.body,
-        color: colors.textMuted,
+        color: colors.textSecondary,
         marginBottom: spacing.md,
     },
     roleBadge: {
@@ -324,6 +329,7 @@ const styles = StyleSheet.create({
         fontSize: 15,
         fontWeight: '600',
     },
+
 });
 
 export default ProfileScreen;

@@ -17,6 +17,10 @@ import ExploreScreen from '../screens/user/ExploreScreen';
 import HouseDetailScreen from '../screens/user/HouseDetailScreen';
 import SavedScreen from '../screens/user/SavedScreen';
 import ProfileScreen from '../screens/user/ProfileScreen';
+import AboutScreen from '../screens/user/AboutScreen';
+import NotificationsScreen from '../screens/user/NotificationsScreen';
+import PrivacySecurityScreen from '../screens/user/PrivacySecurityScreen';
+import HelpSupportScreen from '../screens/user/HelpSupportScreen';
 
 // Owner screens
 import DashboardScreen from '../screens/owner/DashboardScreen';
@@ -133,6 +137,22 @@ const AppNavigator = () => {
                             name="HouseDetail"
                             component={HouseDetailScreen}
                             options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+                        />
+                        <Stack.Screen
+                            name="About"
+                            component={AboutScreen}
+                        />
+                        <Stack.Screen
+                            name="Notifications"
+                            component={NotificationsScreen}
+                        />
+                        <Stack.Screen
+                            name="PrivacySecurity"
+                            component={PrivacySecurityScreen}
+                        />
+                        <Stack.Screen
+                            name="HelpSupport"
+                            component={HelpSupportScreen}
                         />
                         {user.role === 'owner' && (
                             <Stack.Screen

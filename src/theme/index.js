@@ -11,7 +11,7 @@ export const colors = {
   cardDarkBorder: '#E8E8EC',
   cardDarkText: '#1A1A2E',
   cardDarkTextSecondary: '#4A4A5A',
-  cardDarkTextMuted: '#8E8E9A',
+  cardDarkTextMuted: '#6B6B78',
 
   // Borders – subtle
   border: '#E4E4E7',
@@ -19,8 +19,8 @@ export const colors = {
 
   // Text – rich dark scale
   text: '#0A0A0F',
-  textSecondary: '#4B4B57',
-  textMuted: '#9696A0',
+  textSecondary: '#3A3A48',
+  textMuted: '#6B6B78',
 
   // Primary action – deep black
   accent: '#0A0A0F',
@@ -83,7 +83,7 @@ export const typography = {
   body: {
     fontSize: 15,
     fontWeight: '400',
-    color: colors.textSecondary,
+    color: colors.text,
     lineHeight: 22,
   },
   bodyBold: {
@@ -94,12 +94,12 @@ export const typography = {
   caption: {
     fontSize: 13,
     fontWeight: '400',
-    color: colors.textMuted,
+    color: colors.textSecondary,
   },
   small: {
     fontSize: 11,
     fontWeight: '600',
-    color: colors.textMuted,
+    color: colors.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 1,
   },

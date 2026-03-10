@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
     },
     priceUnit: {
         ...typography.body,
-        color: colors.textMuted,
+        color: colors.textSecondary,
         marginLeft: spacing.xs,
     },
     title: {
@@ -446,7 +446,7 @@ const styles = StyleSheet.create({
     },
     address: {
         ...typography.body,
-        color: colors.textMuted,
+        color: colors.textSecondary,
         flex: 1,
     },
     badgeRow: {
@@ -501,7 +501,7 @@ const styles = StyleSheet.create({
     },
     specLabel: {
         ...typography.body,
-        color: colors.textMuted,
+        color: colors.textSecondary,
         fontSize: 14,
     },
     specValue: {
@@ -653,7 +653,7 @@ const styles = StyleSheet.create({
     mapAddress: {
         ...typography.caption,
         marginTop: spacing.sm,
-        color: colors.textMuted,
+        color: colors.textSecondary,
     },
     bottomBar: {
         position: 'absolute',
