@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
         width: 48,
         height: 48,
         borderRadius: 14,
-        backgroundColor: colors.text,
+        backgroundColor: colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -197,12 +197,10 @@ const styles = StyleSheet.create({
     },
     statCard: {
         flex: 1,
-        backgroundColor: colors.card,
+        backgroundColor: colors.elevated,
         borderRadius: borderRadius.md,
         padding: spacing.lg,
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: colors.border,
     },
     statIconCircle: {
         width: 40,
@@ -212,8 +210,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: spacing.sm,
-        borderWidth: 1,
-        borderColor: colors.border,
     },
     statValue: {
         ...typography.h2,
@@ -251,11 +247,8 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.md,
         paddingVertical: spacing.sm,
         borderRadius: borderRadius.sm,
-        borderWidth: 1,
-        borderColor: colors.border,
     },
     deleteBtn: {
-        borderColor: 'rgba(255,68,68,0.2)',
         backgroundColor: 'rgba(255,68,68,0.05)',
     },
     actionText: {

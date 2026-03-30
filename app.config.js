@@ -36,7 +36,7 @@ export default {
             policy: "appVersion",
         },
         updates: {
-            url: "https://u.expo.dev/08bfe629-74ee-4845-a1a4-d07242cd5c41",
+            url: "https://u.expo.dev/5c2fc43b-51ed-440d-b24b-224c86666844",
         },
         splash: {
             image: "./assets/splash-icon.png",
@@ -67,7 +67,7 @@ export default {
         },
         extra: {
             eas: {
-                projectId: "08bfe629-74ee-4845-a1a4-d07242cd5c41",
+                projectId: "5c2fc43b-51ed-440d-b24b-224c86666844",
             },
         },
         plugins,

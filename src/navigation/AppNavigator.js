@@ -37,8 +37,7 @@ const UserTabs = () => (
             headerShown: false,
             tabBarStyle: {
                 backgroundColor: colors.card,
-                borderTopColor: colors.border,
-                borderTopWidth: 1,
+                borderTopWidth: 0,
                 height: 70,
                 paddingBottom: 10,
                 paddingTop: 8,
@@ -48,7 +47,7 @@ const UserTabs = () => (
                 shadowRadius: 8,
                 elevation: 8,
             },
-            tabBarActiveTintColor: colors.text,
+            tabBarActiveTintColor: colors.primary,
             tabBarInactiveTintColor: colors.textMuted,
             tabBarLabelStyle: {
                 fontSize: 11,
@@ -79,8 +78,7 @@ const OwnerTabs = () => (
             headerShown: false,
             tabBarStyle: {
                 backgroundColor: colors.card,
-                borderTopColor: colors.border,
-                borderTopWidth: 1,
+                borderTopWidth: 0,
                 height: 70,
                 paddingBottom: 10,
                 paddingTop: 8,
@@ -90,7 +88,7 @@ const OwnerTabs = () => (
                 shadowRadius: 8,
                 elevation: 8,
             },
-            tabBarActiveTintColor: colors.text,
+            tabBarActiveTintColor: colors.primary,
             tabBarInactiveTintColor: colors.textMuted,
             tabBarLabelStyle: {
                 fontSize: 11,
