@@ -139,12 +139,9 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.md,
         paddingVertical: spacing.sm,
         borderRadius: borderRadius.full,
-        borderWidth: 1,
-        borderColor: colors.border,
     },
     chipSelected: {
-        backgroundColor: colors.text,
-        borderColor: colors.text,
+        backgroundColor: colors.primary,
     },
     chipText: {
         ...typography.caption,
