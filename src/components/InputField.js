@@ -76,18 +76,16 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: colors.card,
+        backgroundColor: colors.surface,
         borderRadius: borderRadius.md,
         paddingHorizontal: spacing.lg,
         height: 52,
-        borderWidth: 1.5,
-        borderColor: colors.border,
     },
     focused: {
-        borderColor: colors.text,
+        backgroundColor: colors.elevated,
     },
     error: {
-        borderColor: colors.danger,
+        backgroundColor: 'rgba(192,57,43,0.06)',
     },
     multiline: {
         height: 120,
