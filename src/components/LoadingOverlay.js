@@ -7,7 +7,7 @@ const LoadingOverlay = ({ visible }) => {
     return (
         <View style={styles.overlay}>
             <View style={styles.loader}>
-                <ActivityIndicator size="large" color={colors.text} />
+                <ActivityIndicator size="large" color={colors.primary} />
             </View>
         </View>
     );
@@ -25,7 +25,7 @@ const styles = StyleSheet.create({
         width: 72,
         height: 72,
         borderRadius: 16,
-        backgroundColor: colors.card,
+        backgroundColor: colors.glassElevated,
         justifyContent: 'center',
         alignItems: 'center',
     },

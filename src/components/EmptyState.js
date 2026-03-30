@@ -29,8 +29,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: spacing.xl,
-        borderWidth: 1,
-        borderColor: colors.border,
     },
     title: {
         ...typography.h3,

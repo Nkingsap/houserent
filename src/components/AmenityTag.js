@@ -47,8 +47,6 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.sm,
         borderRadius: borderRadius.sm,
         gap: spacing.xs,
-        borderWidth: 1,
-        borderColor: colors.border,
     },
     tagText: {
         ...typography.caption,
