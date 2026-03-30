@@ -183,11 +183,9 @@ const styles = StyleSheet.create({
         width: 88,
         height: 88,
         borderRadius: 44,
-        backgroundColor: colors.text,
+        backgroundColor: colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 3,
-        borderColor: colors.border,
         marginBottom: spacing.lg,
     },
     avatarLargeText: {
@@ -209,8 +207,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.lg,
         paddingVertical: spacing.sm,
         borderRadius: borderRadius.full,
-        borderWidth: 1,
-        borderColor: colors.border,
     },
     roleText: {
         ...typography.small,
@@ -231,18 +227,16 @@ const styles = StyleSheet.create({
     },
     editBtn: {
         ...typography.body,
-        color: colors.text,
+        color: colors.primary,
         fontWeight: '600',
     },
     editForm: {
-        backgroundColor: colors.card,
+        backgroundColor: colors.elevated,
         borderRadius: borderRadius.lg,
         padding: spacing.lg,
-        borderWidth: 1,
-        borderColor: colors.border,
     },
     saveBtn: {
-        backgroundColor: colors.text,
+        backgroundColor: colors.primary,
         height: 48,
         borderRadius: borderRadius.md,
         justifyContent: 'center',
@@ -260,12 +254,10 @@ const styles = StyleSheet.create({
     infoCard: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: colors.card,
+        backgroundColor: colors.elevated,
         padding: spacing.lg,
         borderRadius: borderRadius.md,
         gap: spacing.lg,
-        borderWidth: 1,
-        borderColor: colors.border,
     },
     infoContent: {
         flex: 1,
@@ -278,10 +270,8 @@ const styles = StyleSheet.create({
         ...typography.bodyBold,
     },
     menuCard: {
-        backgroundColor: colors.card,
+        backgroundColor: colors.elevated,
         borderRadius: borderRadius.lg,
-        borderWidth: 1,
-        borderColor: colors.border,
         overflow: 'hidden',
     },
     menuItem: {
@@ -292,7 +282,7 @@ const styles = StyleSheet.create({
     },
     menuItemBorder: {
         borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderBottomColor: colors.surface,
     },
     menuItemLeft: {
         flexDirection: 'row',
@@ -306,8 +296,6 @@ const styles = StyleSheet.create({
         backgroundColor: colors.surface,
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: colors.border,
     },
     menuLabel: {
         ...typography.bodyBold,
@@ -321,8 +309,6 @@ const styles = StyleSheet.create({
         borderRadius: borderRadius.md,
         backgroundColor: 'rgba(255,68,68,0.08)',
         gap: spacing.sm,
-        borderWidth: 1,
-        borderColor: 'rgba(255,68,68,0.2)',
     },
     logoutText: {
         color: colors.danger,
