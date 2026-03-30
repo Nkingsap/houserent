@@ -1,40 +1,51 @@
+// ─── Academic Sanctuary Design System ────────────────────────────
+// Palette and tokens aligned with DESIGN.md
+// Slate Blue + Sage Green + Warm Ivory + Antique Gold
+
 export const colors = {
   // Backgrounds
-  background: '#FFFFFF',
-  card: '#FFFFFF',
-  elevated: '#F2F2F4',
-  surface: '#F0F0F2',
+  background: '#FAF9F6',        // Warm Ivory
+  card: 'rgba(255,255,255,0.88)', // Glass surface – more opaque
+  elevated: '#F0EFEC',           // Subtle lift
+  surface: '#E8E6E3',            // Input/chip fill – darker
 
-  // Listing cards (light, on white background)
-  cardDark: '#FFFFFF',
-  cardDarkElevated: '#F5F5F7',
-  cardDarkBorder: '#E8E8EC',
-  cardDarkText: '#1A1A2E',
-  cardDarkTextSecondary: '#4A4A5A',
-  cardDarkTextMuted: '#6B6B78',
+  // Glass surfaces (cards, panels)
+  glass: 'rgba(255,255,255,0.88)',
+  glassBorder: 'rgba(255,255,255,0.45)',
+  glassElevated: 'rgba(255,255,255,0.92)',
 
-  // Borders – subtle
-  border: '#E4E4E7',
-  borderLight: '#F0F0F2',
+  // Listing cards – solid glass
+  cardDark: 'rgba(255,255,255,0.90)',
+  cardDarkElevated: '#F0EFEC',
+  cardDarkBorder: 'rgba(0,0,0,0)',    // transparent – no borders
+  cardDarkText: '#1A2530',
+  cardDarkTextSecondary: '#3D5467',
+  cardDarkTextMuted: '#6B7F8D',
 
-  // Text – rich dark scale
-  text: '#0A0A0F',
-  textSecondary: '#3A3A48',
-  textMuted: '#6B6B78',
+  // Text – Dark Slate scale (sharper)
+  text: '#1A2530',               // Near-black
+  textSecondary: '#3D5467',      // Darker secondary
+  textMuted: '#6B7F8D',          // Darker muted
 
-  // Primary action – deep black
-  accent: '#0A0A0F',
-  accentDim: 'rgba(10,10,15,0.07)',
+  // Primary action – Deep Forest Green
+  primary: '#2D6A4F',
+  primaryDark: '#1B4332',
+  accent: '#B8860B',             // Dark Goldenrod
+  accentDim: 'rgba(184,134,11,0.14)',
 
   // Semantic
-  danger: '#E63946',
-  success: '#2D9B5A',
-  warning: '#E0A800',
+  danger: '#C0392B',
+  success: '#1E8449',
+  warning: '#B7950B',
 
   // Overlays
-  overlay: 'rgba(10,10,15,0.55)',
-  overlayLight: 'rgba(10,10,15,0.04)',
+  overlay: 'rgba(26,37,48,0.60)',
+  overlayLight: 'rgba(26,37,48,0.06)',
   transparent: 'transparent',
+
+  // Borders – kept for dividers only
+  border: 'rgba(26,37,48,0.10)',
+  borderLight: 'rgba(26,37,48,0.05)',
 };
 
 export const spacing = {
@@ -58,27 +69,27 @@ export const borderRadius = {
 export const typography = {
   hero: {
     fontSize: 32,
-    fontWeight: '800',
-    color: colors.text,
-    letterSpacing: -0.8,
-  },
-  h1: {
-    fontSize: 28,
-    fontWeight: '700',
+    fontWeight: '500',           // Medium – sharper
     color: colors.text,
     letterSpacing: -0.5,
   },
-  h2: {
-    fontSize: 22,
-    fontWeight: '700',
+  h1: {
+    fontSize: 28,
+    fontWeight: '600',
     color: colors.text,
     letterSpacing: -0.3,
+  },
+  h2: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: colors.text,
+    letterSpacing: -0.2,
   },
   h3: {
     fontSize: 18,
     fontWeight: '600',
     color: colors.text,
-    letterSpacing: -0.1,
+    letterSpacing: 0,
   },
   body: {
     fontSize: 15,
@@ -88,12 +99,12 @@ export const typography = {
   },
   bodyBold: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.text,
   },
   caption: {
     fontSize: 13,
-    fontWeight: '400',
+    fontWeight: '500',
     color: colors.textSecondary,
   },
   small: {
@@ -101,7 +112,7 @@ export const typography = {
     fontWeight: '600',
     color: colors.textSecondary,
     textTransform: 'uppercase',
-    letterSpacing: 1,
+    letterSpacing: 1.2,
   },
   price: {
     fontSize: 20,
@@ -112,24 +123,24 @@ export const typography = {
 
 export const shadows = {
   small: {
-    shadowColor: '#0A0A0F',
+    shadowColor: '#2C3E50',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 6,
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
     elevation: 3,
   },
   medium: {
-    shadowColor: '#0A0A0F',
+    shadowColor: '#2C3E50',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.1,
-    shadowRadius: 14,
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
     elevation: 5,
   },
   large: {
-    shadowColor: '#0A0A0F',
+    shadowColor: '#2C3E50',
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
+    shadowOpacity: 0.10,
+    shadowRadius: 28,
     elevation: 10,
   },
 };
