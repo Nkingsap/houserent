@@ -126,8 +126,7 @@ const styles = StyleSheet.create({
         width: 300,
         height: 300,
         borderRadius: 150,
-        borderWidth: 1,
-        borderColor: 'rgba(10,10,15,0.06)',
+        backgroundColor: 'rgba(10,10,15,0.03)',
     },
     bgCircle2: {
         position: 'absolute',
@@ -136,8 +135,7 @@ const styles = StyleSheet.create({
         width: 250,
         height: 250,
         borderRadius: 125,
-        borderWidth: 1,
-        borderColor: 'rgba(10,10,15,0.04)',
+        backgroundColor: 'rgba(10,10,15,0.02)',
     },
     bgLine1: {
         position: 'absolute',
@@ -168,14 +166,12 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(10,10,15,0.06)',
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(10,10,15,0.1)',
     },
     logoInner: {
         width: 56,
         height: 56,
         borderRadius: 16,
-        backgroundColor: colors.text,
+        backgroundColor: colors.primary,
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -205,8 +201,6 @@ const styles = StyleSheet.create({
         backgroundColor: colors.elevated,
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: colors.border,
     },
     featureText: {
         ...typography.body,
@@ -220,7 +214,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: colors.text,
+        backgroundColor: colors.primary,
         height: 56,
         borderRadius: borderRadius.xl,
         gap: spacing.sm,
@@ -240,7 +234,7 @@ const styles = StyleSheet.create({
         color: colors.textMuted,
     },
     loginLink: {
-        color: colors.text,
+        color: colors.primary,
         fontWeight: '600',
     },
 });

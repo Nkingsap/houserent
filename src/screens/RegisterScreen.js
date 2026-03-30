@@ -200,8 +200,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: spacing.xxl,
-        borderWidth: 1,
-        borderColor: colors.border,
     },
     header: {
         marginBottom: spacing.xl,
@@ -232,12 +230,9 @@ const styles = StyleSheet.create({
         borderRadius: borderRadius.md,
         padding: spacing.lg,
         alignItems: 'center',
-        borderWidth: 1.5,
-        borderColor: colors.border,
     },
     roleCardActive: {
-        borderColor: colors.text,
-        backgroundColor: colors.card,
+        backgroundColor: colors.surface,
     },
     roleIcon: {
         width: 48,
@@ -249,7 +244,7 @@ const styles = StyleSheet.create({
         marginBottom: spacing.sm,
     },
     roleIconActive: {
-        backgroundColor: colors.text,
+        backgroundColor: colors.primary,
     },
     roleTitle: {
         ...typography.bodyBold,
@@ -267,7 +262,7 @@ const styles = StyleSheet.create({
         marginBottom: spacing.xl,
     },
     registerBtn: {
-        backgroundColor: colors.text,
+        backgroundColor: colors.primary,
         height: 56,
         borderRadius: borderRadius.xl,
         justifyContent: 'center',
@@ -288,7 +283,7 @@ const styles = StyleSheet.create({
         color: colors.textMuted,
     },
     loginBold: {
-        color: colors.text,
+        color: colors.primary,
         fontWeight: '600',
     },
 });

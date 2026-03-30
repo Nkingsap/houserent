@@ -136,8 +136,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: spacing.xxl,
-        borderWidth: 1,
-        borderColor: colors.border,
     },
     header: {
         marginBottom: spacing.xxl,
@@ -154,7 +152,7 @@ const styles = StyleSheet.create({
         marginBottom: spacing.xl,
     },
     loginBtn: {
-        backgroundColor: colors.text,
+        backgroundColor: colors.primary,
         height: 56,
         borderRadius: borderRadius.xl,
         justifyContent: 'center',
@@ -176,7 +174,7 @@ const styles = StyleSheet.create({
         color: colors.textMuted,
     },
     registerBold: {
-        color: colors.text,
+        color: colors.primary,
         fontWeight: '600',
     },
 });
