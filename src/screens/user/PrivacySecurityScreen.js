@@ -46,7 +46,7 @@ const PrivacySecurityScreen = ({ navigation }) => {
             <Switch
                 value={value}
                 onValueChange={onValueChange}
-                trackColor={{ false: colors.border, true: colors.text }}
+                trackColor={{ false: colors.surface, true: colors.primary }}
                 thumbColor={colors.card}
             />
         </View>
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: spacing.lg,
         borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderBottomColor: colors.surface,
         gap: spacing.lg,
     },
     menuItem: {
@@ -195,7 +195,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: spacing.lg,
         borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderBottomColor: colors.surface,
         gap: spacing.lg,
     },
     menuIcon: {

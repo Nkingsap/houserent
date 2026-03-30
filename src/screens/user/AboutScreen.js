@@ -40,7 +40,7 @@ const AboutScreen = ({ navigation }) => {
                         <Ionicons name="home" size={32} color={colors.card} />
                     </View>
                     <Text style={styles.aboutAppName}>HouseRent</Text>
-                    <Text style={styles.aboutVersion}>Version {APP_VERSION}</Text>
+                    <Text style={styles.aboutVersion}>Version {APP_VERSION} </Text>
                 </View>
 
                 {/* Description */}
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
         gap: spacing.lg,
         paddingVertical: spacing.md,
         borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderBottomColor: colors.surface,
     },
     featureText: {
         fontSize: 15,
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
         gap: spacing.lg,
         paddingVertical: spacing.md,
         borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderBottomColor: colors.surface,
     },
     infoText: {
         fontSize: 15,
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: spacing.lg,
         borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderBottomColor: colors.surface,
         gap: spacing.lg,
     },
     actionText: {

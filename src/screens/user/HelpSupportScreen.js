@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: spacing.lg,
         borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderBottomColor: colors.surface,
         gap: spacing.lg,
     },
     contactIcon: {
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
     faqItem: {
         paddingVertical: spacing.lg,
         borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderBottomColor: colors.surface,
     },
     faqHeader: {
         flexDirection: 'row',
@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: spacing.lg,
         borderBottomWidth: 1,
-        borderBottomColor: colors.border,
+        borderBottomColor: colors.surface,
         gap: spacing.lg,
     },
     linkLabel: {
