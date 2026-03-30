@@ -160,8 +160,6 @@ const styles = StyleSheet.create({
         borderRadius: borderRadius.lg,
         marginBottom: spacing.lg,
         overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: colors.cardDarkBorder,
         ...shadows.medium,
     },
     imageContainer: {
@@ -246,8 +244,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: spacing.sm,
         paddingVertical: spacing.xs,
         borderRadius: borderRadius.sm,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.25)',
     },
     distanceText: {
         color: '#FFFFFF',
@@ -305,8 +301,6 @@ const styles = StyleSheet.create({
         borderRadius: borderRadius.md,
         marginRight: spacing.md,
         overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: colors.cardDarkBorder,
         ...shadows.small,
     },
     compactImageContainer: {
