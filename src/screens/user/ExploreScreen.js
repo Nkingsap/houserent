@@ -570,9 +570,6 @@ const styles = StyleSheet.create({
         paddingVertical: spacing.sm,
         gap: spacing.sm,
         backgroundColor: colors.elevated,
-        borderTopWidth: 1,
-        borderBottomWidth: 1,
-        borderColor: colors.border,
         marginBottom: spacing.xs,
     },
     nearMeBannerLeft: {
@@ -594,13 +591,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         paddingVertical: 5,
         borderRadius: 12,
-        borderWidth: 1,
-        borderColor: colors.border,
-        backgroundColor: colors.card,
+        backgroundColor: colors.surface,
     },
     radiusChipActive: {
-        backgroundColor: colors.text,
-        borderColor: colors.text,
+        backgroundColor: colors.primary,
     },
     radiusChipText: {
         fontSize: 12,
@@ -636,13 +630,10 @@ const styles = StyleSheet.create({
         backgroundColor: colors.elevated,
         justifyContent: 'center',
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: colors.border,
         position: 'relative',
     },
     iconBtnActive: {
-        backgroundColor: colors.text,
-        borderColor: colors.text,
+        backgroundColor: colors.primary,
     },
     filterBadge: {
         position: 'absolute',
@@ -685,8 +676,6 @@ const styles = StyleSheet.create({
         margin: spacing.xl,
         borderRadius: borderRadius.lg,
         overflow: 'hidden',
-        borderWidth: 1,
-        borderColor: colors.border,
     },
     map: {
         flex: 1,
@@ -697,8 +686,6 @@ const styles = StyleSheet.create({
         backgroundColor: colors.elevated,
         borderRadius: 12,
         padding: 3,
-        borderWidth: 1,
-        borderColor: colors.border,
     },
     segmentBtn: {
         flexDirection: 'row',
@@ -709,7 +696,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
     },
     segmentBtnActive: {
-        backgroundColor: colors.text,
+        backgroundColor: colors.primary,
     },
     segmentBtnText: {
         fontSize: 13,
@@ -722,7 +709,7 @@ const styles = StyleSheet.create({
     segmentDivider: {
         width: 1,
         height: 18,
-        backgroundColor: colors.border,
+        backgroundColor: colors.surface,
         alignSelf: 'center',
         marginHorizontal: 2,
     },
@@ -737,8 +724,6 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
         borderRadius: 20,
         backgroundColor: 'rgba(0,0,0,0.72)',
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.18)',
     },
     fullscreenBtnText: {
         color: '#fff',
@@ -838,7 +823,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     marker: {
-        backgroundColor: colors.text,
+        backgroundColor: colors.primary,
         paddingHorizontal: spacing.sm,
         paddingVertical: spacing.xs,
         borderRadius: borderRadius.sm,
@@ -861,7 +846,7 @@ const styles = StyleSheet.create({
         borderTopWidth: 6,
         borderLeftColor: 'transparent',
         borderRightColor: 'transparent',
-        borderTopColor: colors.text,
+        borderTopColor: colors.primary,
     },
 });
 
