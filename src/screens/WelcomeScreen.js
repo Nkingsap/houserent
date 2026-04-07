@@ -7,6 +7,7 @@ import {
     Animated,
     StatusBar,
     Dimensions,
+    Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '../theme';
@@ -60,11 +61,11 @@ const WelcomeScreen = ({ navigation }) => {
                 ]}
             >
                 <View style={styles.logoContainer}>
-                    <View style={styles.logoOuter}>
-                        <View style={styles.logoInner}>
-                            <Ionicons name="home" size={36} color={"#FFFFFF"} />
-                        </View>
-                    </View>
+                    <Image
+                        source={require('../../assets/appicon.png')}
+                        style={styles.logoImage}
+                        resizeMode="contain"
+                    />
                 </View>
 
                 <Text style={styles.brand}>RentHouse</Text>
@@ -158,22 +159,12 @@ const styles = StyleSheet.create({
     },
     logoContainer: {
         marginBottom: spacing.xl,
+        alignItems: 'flex-start',
     },
-    logoOuter: {
+    logoImage: {
         width: 80,
         height: 80,
-        borderRadius: 24,
-        backgroundColor: 'rgba(10,10,15,0.06)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    logoInner: {
-        width: 56,
-        height: 56,
-        borderRadius: 16,
-        backgroundColor: colors.primary,
-        justifyContent: 'center',
-        alignItems: 'center',
+        borderRadius: 20,
     },
     brand: {
         ...typography.hero,

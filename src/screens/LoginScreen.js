@@ -9,6 +9,7 @@ import {
     Platform,
     Alert,
     StatusBar,
+    Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '../theme';
@@ -62,6 +63,14 @@ const LoginScreen = ({ navigation }) => {
                     >
                         <Ionicons name="arrow-back" size={24} color={colors.text} />
                     </TouchableOpacity>
+
+                    <View style={styles.logoContainer}>
+                        <Image
+                            source={require('../../assets/appicon.png')}
+                            style={styles.appIcon}
+                            resizeMode="contain"
+                        />
+                    </View>
 
                     <View style={styles.header}>
                         <Text style={styles.title}>Welcome back</Text>
@@ -135,7 +144,16 @@ const styles = StyleSheet.create({
         backgroundColor: colors.elevated,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: spacing.xxl,
+        marginBottom: spacing.xl,
+    },
+    logoContainer: {
+        alignItems: 'center',
+        marginBottom: spacing.xl,
+    },
+    appIcon: {
+        width: 100,
+        height: 100,
+        borderRadius: 24,
     },
     header: {
         marginBottom: spacing.xxl,

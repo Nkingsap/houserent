@@ -1,0 +1,5 @@
+ npx eas-cli update --channel preview --environment preview --message "UI updates and improvements" --non-interactive 2>&1
+
+ ota update
+
+ yarn add -D @expo/ngrok@^4.1.0

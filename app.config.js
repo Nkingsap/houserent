@@ -29,7 +29,7 @@ export default {
         slug: "rent",
         version: "1.0.0",
         orientation: "portrait",
-        icon: "./assets/icon.png",
+        icon: "./assets/appicon.png",
         userInterfaceStyle: "dark",
         owner: "barrynring",
         runtimeVersion: {
@@ -39,7 +39,7 @@ export default {
             url: "https://u.expo.dev/5c2fc43b-51ed-440d-b24b-224c86666844",
         },
         splash: {
-            image: "./assets/splash-icon.png",
+            image: "./assets/appicon.png",
             resizeMode: "contain",
             backgroundColor: "#000000",
         },
@@ -53,7 +53,7 @@ export default {
         android: {
             package: "com.barrynring.renthouse",
             adaptiveIcon: {
-                foregroundImage: "./assets/adaptive-icon.png",
+                foregroundImage: "./assets/appicon.png",
                 backgroundColor: "#000000",
             },
             config: {
@@ -63,7 +63,7 @@ export default {
             },
         },
         web: {
-            favicon: "./assets/favicon.png",
+            favicon: "./assets/appicon.png",
         },
         extra: {
             eas: {
