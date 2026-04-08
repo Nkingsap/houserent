@@ -5,14 +5,14 @@ const plugins = [
         "expo-image-picker",
         {
             photosPermission:
-                "Allow RentHouse to access your photos to add images to your listings.",
+                "Allow RentHub to access your photos to add images to your listings.",
         },
     ],
     [
         "expo-location",
         {
             locationAlwaysAndWhenInUsePermission:
-                "Allow RentHouse to use your location to find nearby rentals.",
+                "Allow RentHub to use your location to find nearby rentals.",
         },
     ],
     "expo-font",
@@ -25,7 +25,7 @@ if (IS_DEV) {
 
 export default {
     expo: {
-        name: "RentHouse",
+        name: "RentHub",
         slug: "rent",
         version: "1.0.0",
         orientation: "portrait",
@@ -45,13 +45,13 @@ export default {
         },
         ios: {
             supportsTablet: true,
-            bundleIdentifier: "com.barrynring.renthouse",
+            bundleIdentifier: "com.barrynring.renthub",
             config: {
                 googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
             },
         },
         android: {
-            package: "com.barrynring.renthouse",
+            package: "com.barrynring.renthub",
             adaptiveIcon: {
                 foregroundImage: "./assets/appicon.png",
                 backgroundColor: "#000000",
@@ -61,6 +61,11 @@ export default {
                     apiKey: process.env.GOOGLE_MAPS_API_KEY,
                 },
             },
+        },
+        androidNavigationBar: {
+            visible: "sticky-immersive",
+            backgroundColor: "#FAF9F6",
+            barStyle: "dark-content",
         },
         web: {
             favicon: "./assets/appicon.png",

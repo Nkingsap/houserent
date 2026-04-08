@@ -16,7 +16,7 @@ import {
     ActivityIndicator,
 } from 'react-native';
 import FullscreenGallery from '../../components/FullscreenGallery';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import MapView, { Marker } from '../../components/MapViewWrapper';
@@ -31,6 +31,7 @@ const IMAGE_SECTION_HEIGHT = screenHeight * 0.45;
 const HouseDetailScreen = ({ navigation, route }) => {
     const { listing } = route.params;
     const { user } = useAuth();
+    const insets = useSafeAreaInsets();
     const [favorited, setFavorited] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [fullscreenMap, setFullscreenMap] = useState(false);
@@ -502,7 +503,7 @@ const HouseDetailScreen = ({ navigation, route }) => {
             />
 
             {/* Bottom Bar */}
-            <View style={styles.bottomBar}>
+            <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, spacing.lg) }]}>
                 <View style={styles.bottomPrice}>
                     <Text style={styles.bottomPriceText}>₹{listing.price.toLocaleString()}</Text>
                     <Text style={styles.bottomPriceUnit}>/month</Text>
@@ -987,7 +988,6 @@ const styles = StyleSheet.create({
         backgroundColor: colors.card,
         paddingHorizontal: spacing.xl,
         paddingTop: spacing.lg,
-        paddingBottom: spacing.xxl,
         ...shadows.large,
     },
     bottomPrice: {

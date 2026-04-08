@@ -9,6 +9,7 @@ import {
     Dimensions,
     StatusBar,
     Platform,
+    ActivityIndicator,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import { Ionicons } from '@expo/vector-icons';
@@ -30,6 +31,7 @@ const ANIM = { duration: 200, easing: Easing.out(Easing.ease) };
 
 /* ─── Single zoomable image ─── */
 const ZoomableImage = ({ uri, panEnabled, onZoomChange }) => {
+    const [isLoading, setIsLoading] = useState(true);
     const scale = useSharedValue(1);
     const savedScale = useSharedValue(1);
     const translateX = useSharedValue(0);
@@ -105,10 +107,18 @@ const ZoomableImage = ({ uri, panEnabled, onZoomChange }) => {
     return (
         <GestureDetector gesture={gesture}>
             <View style={styles.imageWrapper}>
+                {isLoading && (
+                    <View style={styles.loaderOverlay}>
+                        <ActivityIndicator size="large" color="#ffffff" />
+                        <Text style={styles.loaderText}>Loading...</Text>
+                    </View>
+                )}
                 <Animated.Image
                     source={{ uri }}
                     style={[styles.fullImage, animatedStyle]}
                     resizeMode="contain"
+                    onLoadStart={() => setIsLoading(true)}
+                    onLoadEnd={() => setIsLoading(false)}
                 />
             </View>
         </GestureDetector>
@@ -287,6 +297,18 @@ const styles = StyleSheet.create({
     dotActive: {
         backgroundColor: '#FFFFFF',
         width: 18,
+    },
+    loaderOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 10,
+    },
+    loaderText: {
+        color: 'rgba(255,255,255,0.6)',
+        fontSize: 13,
+        marginTop: 10,
+        fontWeight: '500',
     },
 });
 

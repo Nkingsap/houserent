@@ -126,7 +126,7 @@ const AddListingScreen = ({ navigation, route }) => {
             try {
                 const res = await fetch(
                     `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json&addressdetails=1`,
-                    { headers: { 'Accept-Language': 'en', 'User-Agent': 'HouseRentApp/1.0' } }
+                    { headers: { 'Accept-Language': 'en', 'User-Agent': 'RentHubApp/1.0' } }
                 );
                 const data = await res.json();
                 if (data?.address) {
@@ -153,7 +153,7 @@ const AddListingScreen = ({ navigation, route }) => {
         try {
             const res = await fetch(
                 `https://nominatim.openstreetmap.org/search?q=residential&lat=${lat}&lon=${lon}&format=json&limit=5&addressdetails=1&viewbox=${lon - 0.05},${lat + 0.05},${lon + 0.05},${lat - 0.05}&bounded=1`,
-                { headers: { 'Accept-Language': 'en', 'User-Agent': 'HouseRentApp/1.0' } }
+                { headers: { 'Accept-Language': 'en', 'User-Agent': 'RentHubApp/1.0' } }
             );
             const data = await res.json();
             if (Array.isArray(data) && data.length > 0) {
@@ -200,7 +200,7 @@ const AddListingScreen = ({ navigation, route }) => {
         try {
             const res = await fetch(
                 `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&addressdetails=1`,
-                { headers: { 'Accept-Language': 'en', 'User-Agent': 'HouseRentApp/1.0' } }
+                { headers: { 'Accept-Language': 'en', 'User-Agent': 'RentHubApp/1.0' } }
             );
             if (!res.ok) throw new Error('Nominatim HTTP ' + res.status);
             const data = await res.json();
@@ -351,7 +351,7 @@ const AddListingScreen = ({ navigation, route }) => {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
             <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
             <LoadingOverlay visible={loading} />
 

@@ -69,7 +69,7 @@ const WelcomeScreen = ({ navigation }) => {
                     />
                 </View>
 
-                <Text style={styles.brand}>RentHouse</Text>
+                <Text style={styles.brand}>RentHub</Text>
                 <Text style={styles.tagline}>Find your perfect home</Text>
 
                 <View style={styles.features}>

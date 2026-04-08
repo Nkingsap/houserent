@@ -2,6 +2,7 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme';
 import { useAuth } from '../context/AuthContext';
@@ -32,90 +33,96 @@ const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 // ─── User Tab Navigator ──────────────────────
-const UserTabs = () => (
-    <Tab.Navigator
-        screenOptions={({ route }) => ({
-            headerShown: false,
-            tabBarStyle: {
-                backgroundColor: colors.card,
-                borderTopWidth: 0,
-                height: 70,
-                paddingBottom: 10,
-                paddingTop: 8,
-                shadowColor: '#0A0A0F',
-                shadowOffset: { width: 0, height: -2 },
-                shadowOpacity: 0.05,
-                shadowRadius: 8,
-                elevation: 8,
-            },
-            tabBarActiveTintColor: colors.primary,
-            tabBarInactiveTintColor: colors.textMuted,
-            tabBarLabelStyle: {
-                fontSize: 11,
-                fontWeight: '600',
-            },
-            tabBarIcon: ({ color, size }) => {
-                const icons = {
-                    Home: 'home',
-                    Map: 'map',
-                    Saved: 'heart',
-                    Profile: 'person',
-                };
-                return <Ionicons name={icons[route.name]} size={22} color={color} />;
-            },
-        })}
-    >
-        <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Map" component={MapScreen} />
-        <Tab.Screen name="Saved" component={SavedScreen} />
-        <Tab.Screen name="Profile" component={ProfileScreen} />
-    </Tab.Navigator>
-);
+const UserTabs = () => {
+    const insets = useSafeAreaInsets();
+    return (
+        <Tab.Navigator
+            screenOptions={({ route }) => ({
+                headerShown: false,
+                tabBarStyle: {
+                    backgroundColor: colors.card,
+                    borderTopWidth: 0,
+                    height: 60 + insets.bottom,
+                    paddingBottom: insets.bottom,
+                    paddingTop: 8,
+                    shadowColor: '#0A0A0F',
+                    shadowOffset: { width: 0, height: -2 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 8,
+                    elevation: 8,
+                },
+                tabBarActiveTintColor: colors.primary,
+                tabBarInactiveTintColor: colors.textMuted,
+                tabBarLabelStyle: {
+                    fontSize: 11,
+                    fontWeight: '600',
+                },
+                tabBarIcon: ({ color, size }) => {
+                    const icons = {
+                        Home: 'home',
+                        Map: 'map',
+                        Saved: 'heart',
+                        Profile: 'person',
+                    };
+                    return <Ionicons name={icons[route.name]} size={22} color={color} />;
+                },
+            })}
+        >
+            <Tab.Screen name="Home" component={HomeScreen} />
+            <Tab.Screen name="Map" component={MapScreen} />
+            <Tab.Screen name="Saved" component={SavedScreen} />
+            <Tab.Screen name="Profile" component={ProfileScreen} />
+        </Tab.Navigator>
+    );
+};
 
 // ─── Owner Tab Navigator ─────────────────────
-const OwnerTabs = () => (
-    <Tab.Navigator
-        screenOptions={({ route }) => ({
-            headerShown: false,
-            tabBarStyle: {
-                backgroundColor: colors.card,
-                borderTopWidth: 0,
-                height: 70,
-                paddingBottom: 10,
-                paddingTop: 8,
-                shadowColor: '#0A0A0F',
-                shadowOffset: { width: 0, height: -2 },
-                shadowOpacity: 0.05,
-                shadowRadius: 8,
-                elevation: 8,
-            },
-            tabBarActiveTintColor: colors.primary,
-            tabBarInactiveTintColor: colors.textMuted,
-            tabBarLabelStyle: {
-                fontSize: 11,
-                fontWeight: '600',
-            },
-            tabBarIcon: ({ color, size }) => {
-                const icons = {
-                    Dashboard: 'grid',
-                    OwnerProfile: 'person',
-                };
-                return <Ionicons name={icons[route.name]} size={22} color={color} />;
-            },
-        })}
-    >
-        <Tab.Screen
-            name="Dashboard"
-            component={DashboardScreen}
-            options={{ tabBarLabel: 'Dashboard' }}
-        />
-        <Tab.Screen
-            name="OwnerProfile"
-            component={OwnerProfileScreen}
-            options={{ tabBarLabel: 'Profile' }}
-        />
-    </Tab.Navigator>
-);
+const OwnerTabs = () => {
+    const insets = useSafeAreaInsets();
+    return (
+        <Tab.Navigator
+            screenOptions={({ route }) => ({
+                headerShown: false,
+                tabBarStyle: {
+                    backgroundColor: colors.card,
+                    borderTopWidth: 0,
+                    height: 60 + insets.bottom,
+                    paddingBottom: insets.bottom,
+                    paddingTop: 8,
+                    shadowColor: '#0A0A0F',
+                    shadowOffset: { width: 0, height: -2 },
+                    shadowOpacity: 0.05,
+                    shadowRadius: 8,
+                    elevation: 8,
+                },
+                tabBarActiveTintColor: colors.primary,
+                tabBarInactiveTintColor: colors.textMuted,
+                tabBarLabelStyle: {
+                    fontSize: 11,
+                    fontWeight: '600',
+                },
+                tabBarIcon: ({ color, size }) => {
+                    const icons = {
+                        Dashboard: 'grid',
+                        OwnerProfile: 'person',
+                    };
+                    return <Ionicons name={icons[route.name]} size={22} color={color} />;
+                },
+            })}
+        >
+            <Tab.Screen
+                name="Dashboard"
+                component={DashboardScreen}
+                options={{ tabBarLabel: 'Dashboard' }}
+            />
+            <Tab.Screen
+                name="OwnerProfile"
+                component={OwnerProfileScreen}
+                options={{ tabBarLabel: 'Profile' }}
+            />
+        </Tab.Navigator>
+    );
+};
 
 // ─── Root Navigator ──────────────────────────
 const AppNavigator = () => {

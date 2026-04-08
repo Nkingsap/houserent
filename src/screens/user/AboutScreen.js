@@ -7,6 +7,7 @@ import {
     StyleSheet,
     StatusBar,
     Linking,
+    Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,7 +17,7 @@ const APP_VERSION = '1.0.0';
 
 const AboutScreen = ({ navigation }) => {
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
             <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
             {/* Header */}
@@ -37,17 +38,19 @@ const AboutScreen = ({ navigation }) => {
             >
                 {/* App Icon & Name */}
                 <View style={styles.aboutAppHeader}>
-                    <View style={styles.aboutAppIcon}>
-                        <Ionicons name="home" size={32} color={colors.card} />
-                    </View>
-                    <Text style={styles.aboutAppName}>HouseRent</Text>
+                    <Image
+                        source={require('../../../assets/appicon.png')}
+                        style={styles.aboutAppIconImage}
+                        resizeMode="contain"
+                    />
+                    <Text style={styles.aboutAppName}>RentHub</Text>
                     <Text style={styles.aboutVersion}>Version {APP_VERSION} </Text>
                 </View>
 
                 {/* Description */}
                 <View style={styles.section}>
                     <Text style={styles.description}>
-                        HouseRent is your trusted platform for finding the perfect rental home. Browse listings, connect with property owners, and find your next home — all in one place.
+                        RentHub is your trusted platform for finding the perfect rental home. Browse listings, connect with property owners, and find your next home — all in one place.
                     </Text>
                 </View>
 
@@ -85,7 +88,7 @@ const AboutScreen = ({ navigation }) => {
                 <View style={styles.section}>
                     <TouchableOpacity
                         style={styles.actionItem}
-                        onPress={() => Linking.openURL('mailto:support@houserent.app')}
+                        onPress={() => Linking.openURL('mailto:support@renthub.app')}
                         activeOpacity={0.6}
                     >
                         <Ionicons name="mail-outline" size={20} color={colors.text} />
@@ -115,7 +118,7 @@ const AboutScreen = ({ navigation }) => {
                 </View>
 
                 <Text style={styles.copyright}>
-                    © 2026 HouseRent. All rights reserved.
+                    © 2026 RentHub. All rights reserved.
                 </Text>
             </ScrollView>
         </SafeAreaView>
@@ -157,6 +160,12 @@ const styles = StyleSheet.create({
         backgroundColor: colors.text,
         justifyContent: 'center',
         alignItems: 'center',
+        marginBottom: spacing.lg,
+    },
+    aboutAppIconImage: {
+        width: 72,
+        height: 72,
+        borderRadius: 20,
         marginBottom: spacing.lg,
     },
     aboutAppName: {

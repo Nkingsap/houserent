@@ -184,7 +184,7 @@ const ExploreScreen = ({ navigation, route }) => {
     const activeFiltersCount = [filters.type, filters.minPrice, filters.bedrooms].filter(Boolean).length;
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
             <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
             {/* Header */}

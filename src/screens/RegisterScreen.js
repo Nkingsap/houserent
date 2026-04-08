@@ -74,7 +74,7 @@ const RegisterScreen = ({ navigation }) => {
                     <View style={styles.header}>
                         <Text style={styles.title}>Create account</Text>
                         <Text style={styles.subtitle}>
-                            Join RentHouse to find or list rental properties
+                            Join RentHub to find or list rental properties
                         </Text>
                     </View>
 

@@ -43,7 +43,7 @@ const HelpSupportScreen = ({ navigation }) => {
     };
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
+        <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
             <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
             {/* Header */}
@@ -68,7 +68,7 @@ const HelpSupportScreen = ({ navigation }) => {
 
                     <TouchableOpacity
                         style={styles.contactItem}
-                        onPress={() => Linking.openURL('mailto:support@houserent.app')}
+                        onPress={() => Linking.openURL('mailto:support@renthub.app')}
                         activeOpacity={0.6}
                     >
                         <View style={styles.contactIcon}>
@@ -76,7 +76,7 @@ const HelpSupportScreen = ({ navigation }) => {
                         </View>
                         <View style={{ flex: 1 }}>
                             <Text style={styles.contactLabel}>Email Us</Text>
-                            <Text style={styles.contactHint}>support@houserent.app</Text>
+                            <Text style={styles.contactHint}>support@renthub.app</Text>
                         </View>
                         <Ionicons name="open-outline" size={16} color={colors.textSecondary} />
                     </TouchableOpacity>
@@ -128,8 +128,8 @@ const HelpSupportScreen = ({ navigation }) => {
                     <Text style={styles.sectionTitle}>Useful Links</Text>
 
                     {[
-                        { icon: 'document-text-outline', label: 'Privacy Policy', url: 'https://houserent.app/privacy' },
-                        { icon: 'reader-outline', label: 'Terms of Service', url: 'https://houserent.app/terms' },
+                        { icon: 'document-text-outline', label: 'Privacy Policy', url: 'https://renthub.app/privacy' },
+                        { icon: 'reader-outline', label: 'Terms of Service', url: 'https://renthub.app/terms' },
                         { icon: 'star-outline', label: 'Rate the App', url: 'https://play.google.com/store' },
                     ].map((link, i) => (
                         <TouchableOpacity
