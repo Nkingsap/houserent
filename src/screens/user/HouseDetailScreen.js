@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import {
     View,
     Text,
     ScrollView,
+    FlatList,
     TouchableOpacity,
     StyleSheet,
     StatusBar,
@@ -14,6 +15,7 @@ import {
     Platform,
     ActivityIndicator,
 } from 'react-native';
+import FullscreenGallery from '../../components/FullscreenGallery';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
@@ -23,7 +25,8 @@ import AmenityTag from '../../components/AmenityTag';
 import { apiGetFavorites, apiToggleFavorite } from '../../services/apiService';
 import { useAuth } from '../../context/AuthContext';
 
-const { width } = Dimensions.get('window');
+const { width, height: screenHeight } = Dimensions.get('window');
+const IMAGE_SECTION_HEIGHT = screenHeight * 0.45;
 
 const HouseDetailScreen = ({ navigation, route }) => {
     const { listing } = route.params;
@@ -31,10 +34,13 @@ const HouseDetailScreen = ({ navigation, route }) => {
     const [favorited, setFavorited] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [fullscreenMap, setFullscreenMap] = useState(false);
+    const [fullscreenGallery, setFullscreenGallery] = useState(false);
+    const [galleryIndex, setGalleryIndex] = useState(0);
     const [mapType, setMapType] = useState('hybrid');
     const [userLocation, setUserLocation] = useState(null);
     const [locatingUser, setLocatingUser] = useState(false);
     const fullscreenMapRef = useRef(null);
+    const galleryListRef = useRef(null);
 
     useEffect(() => {
         checkFavorite();
@@ -134,33 +140,63 @@ const HouseDetailScreen = ({ navigation, route }) => {
         };
     };
 
+    const openGallery = (index) => {
+        setGalleryIndex(index);
+        setFullscreenGallery(true);
+    };
+
+    const images = listing.images || [];
+    const totalImages = images.length;
+
+
+
     return (
         <View style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
             <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-                {/* Image Gallery */}
+                {/* Image Gallery — half screen */}
                 <View style={styles.imageSection}>
-                    {listing.images && listing.images.length > 0 ? (
-                        <ScrollView
+                    {totalImages > 0 ? (
+                        <FlatList
+                            ref={galleryListRef}
+                            data={images}
+                            keyExtractor={(_, i) => String(i)}
                             horizontal
-                            pagingEnabled
                             showsHorizontalScrollIndicator={false}
+                            snapToInterval={width}
+                            snapToAlignment="start"
+                            decelerationRate="fast"
+                            bounces={false}
+                            overScrollMode="never"
+                            getItemLayout={(_, index) => ({
+                                length: width,
+                                offset: width * index,
+                                index,
+                            })}
                             onMomentumScrollEnd={(e) => {
                                 const idx = Math.round(e.nativeEvent.contentOffset.x / width);
                                 setCurrentImageIndex(idx);
                             }}
-                        >
-                            {listing.images.map((img, i) => (
-                                <Image key={i} source={{ uri: img }} style={styles.galleryImage} />
-                            ))}
-                        </ScrollView>
+                            renderItem={({ item: img, index: i }) => (
+                                <TouchableOpacity
+                                    activeOpacity={0.9}
+                                    onPress={() => openGallery(i)}
+                                >
+                                    <Image source={{ uri: img }} style={styles.galleryImage} />
+                                </TouchableOpacity>
+                            )}
+                        />
                     ) : (
                         <View style={styles.placeholderImage}>
                             <Ionicons name="image-outline" size={56} color={colors.textMuted} />
                             <Text style={styles.placeholderText}>No photos available</Text>
                         </View>
                     )}
+
+                    {/* Dark gradient at top & bottom for readability */}
+                    <View style={styles.imageGradientTop} pointerEvents="none" />
+                    <View style={styles.imageGradientBottom} pointerEvents="none" />
 
                     {/* Back & Actions Overlay */}
                     <View style={styles.topBar}>
@@ -184,30 +220,57 @@ const HouseDetailScreen = ({ navigation, route }) => {
                         </View>
                     </View>
 
-                    {/* Dots */}
-                    {listing.images && listing.images.length > 1 && (
-                        <View style={styles.dots}>
-                            {listing.images.map((_, i) => (
-                                <View
-                                    key={i}
-                                    style={[styles.dot, i === currentImageIndex && styles.dotActive]}
-                                />
-                            ))}
+                    {/* Bottom overlay: dots + image counter + tap hint */}
+                    <View style={styles.imageBottomOverlay}>
+                        {/* Dots */}
+                        {totalImages > 1 && (
+                            <View style={styles.dots}>
+                                {images.map((_, i) => (
+                                    <View
+                                        key={i}
+                                        style={[styles.dot, i === currentImageIndex && styles.dotActive]}
+                                    />
+                                ))}
+                            </View>
+                        )}
+
+                        {/* Image counter + tap hint */}
+                        <View style={styles.imageOverlayRow}>
+                            {totalImages > 0 && (
+                                <View style={styles.imageCountChip}>
+                                    <Ionicons name="images-outline" size={13} color="#fff" />
+                                    <Text style={styles.imageCountText}>
+                                        {currentImageIndex + 1} / {totalImages}
+                                    </Text>
+                                </View>
+                            )}
+                            {totalImages > 0 && (
+                                <TouchableOpacity
+                                    style={styles.tapToViewChip}
+                                    onPress={() => openGallery(currentImageIndex)}
+                                    activeOpacity={0.8}
+                                >
+                                    <Ionicons name="expand-outline" size={13} color="#fff" />
+                                    <Text style={styles.tapToViewText}>Tap to view</Text>
+                                </TouchableOpacity>
+                            )}
                         </View>
-                    )}
+                    </View>
                 </View>
 
                 {/* Content */}
                 <View style={styles.content}>
-                    {/* Price & Title */}
+                    {/* Title & Price */}
                     <View style={styles.titleSection}>
-                        <View style={styles.priceRow}>
-                            <Text style={styles.price}>₹{listing.price.toLocaleString()}</Text>
-                            <Text style={styles.priceUnit}>/month</Text>
+                        <View style={styles.titlePriceRow}>
+                            <Text style={styles.title} numberOfLines={2}>{listing.title}</Text>
+                            <View style={styles.detailPriceBadge}>
+                                <Text style={styles.detailPriceText}>₹{listing.price.toLocaleString()}</Text>
+                                <Text style={styles.detailPriceUnit}>/month</Text>
+                            </View>
                         </View>
-                        <Text style={styles.title}>{listing.title}</Text>
                         <View style={styles.addressRow}>
-                            <Ionicons name="location" size={16} color={colors.textMuted} />
+                            <Ionicons name="location" size={20} color={colors.primary} />
                             <Text style={styles.address}>
                                 {listing.address}, {listing.city}
                             </Text>
@@ -430,6 +493,14 @@ const HouseDetailScreen = ({ navigation, route }) => {
                 </View>
             </ScrollView>
 
+            {/* ═══════ Fullscreen Photo Gallery ═══════ */}
+            <FullscreenGallery
+                images={images}
+                initialIndex={galleryIndex}
+                visible={fullscreenGallery}
+                onClose={() => setFullscreenGallery(false)}
+            />
+
             {/* Bottom Bar */}
             <View style={styles.bottomBar}>
                 <View style={styles.bottomPrice}>
@@ -456,20 +527,39 @@ const styles = StyleSheet.create({
         backgroundColor: colors.background,
     },
     imageSection: {
-        height: 300,
-        backgroundColor: colors.card,
+        height: IMAGE_SECTION_HEIGHT,
+        backgroundColor: '#000',
         position: 'relative',
     },
     galleryImage: {
         width: width,
-        height: 300,
+        height: IMAGE_SECTION_HEIGHT,
         resizeMode: 'cover',
+    },
+    imageGradientTop: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 100,
+        backgroundColor: 'transparent',
+        // Simulated gradient with layered opacity
+        borderTopWidth: 0,
+    },
+    imageGradientBottom: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: 80,
+        backgroundColor: 'rgba(0,0,0,0.35)',
     },
     placeholderImage: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         gap: spacing.sm,
+        backgroundColor: colors.card,
     },
     placeholderText: {
         ...typography.caption,
@@ -482,22 +572,66 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
+        zIndex: 10,
     },
     topBtn: {
         width: 42,
         height: 42,
         borderRadius: 21,
-        backgroundColor: 'rgba(0,0,0,0.6)',
+        backgroundColor: 'rgba(0,0,0,0.55)',
         justifyContent: 'center',
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.15)',
     },
     topActions: {
         flexDirection: 'row',
         gap: spacing.sm,
     },
-    dots: {
+    imageBottomOverlay: {
         position: 'absolute',
-        bottom: spacing.lg,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        paddingHorizontal: spacing.lg,
+        paddingBottom: spacing.md,
+        zIndex: 5,
+    },
+    imageOverlayRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: spacing.sm,
+    },
+    imageCountChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 12,
+    },
+    imageCountText: {
+        color: '#FFFFFF',
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    tapToViewChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 5,
+        backgroundColor: 'rgba(0,0,0,0.6)',
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        borderRadius: 12,
+    },
+    tapToViewText: {
+        color: '#FFFFFF',
+        fontSize: 12,
+        fontWeight: '600',
+    },
+    dots: {
         alignSelf: 'center',
         flexDirection: 'row',
         gap: spacing.xs,
@@ -512,6 +646,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFFFFF',
         width: 20,
     },
+
+
     content: {
         paddingHorizontal: spacing.xl,
         paddingTop: spacing.xl,
@@ -519,23 +655,34 @@ const styles = StyleSheet.create({
     titleSection: {
         marginBottom: spacing.lg,
     },
-    priceRow: {
+    titlePriceRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: spacing.sm,
+    },
+    detailPriceBadge: {
         flexDirection: 'row',
         alignItems: 'baseline',
-        marginBottom: spacing.xs,
+        backgroundColor: colors.primary,
+        paddingHorizontal: spacing.md,
+        paddingVertical: spacing.sm,
+        borderRadius: borderRadius.sm,
     },
-    price: {
-        ...typography.hero,
-        fontSize: 28,
+    detailPriceText: {
+        color: '#FFFFFF',
+        fontSize: 18,
+        fontWeight: '800',
     },
-    priceUnit: {
-        ...typography.body,
-        color: colors.textSecondary,
-        marginLeft: spacing.xs,
+    detailPriceUnit: {
+        color: 'rgba(255,255,255,0.8)',
+        fontSize: 12,
+        marginLeft: 2,
     },
     title: {
         ...typography.h2,
-        marginBottom: spacing.sm,
+        flex: 1,
+        marginRight: spacing.sm,
     },
     addressRow: {
         flexDirection: 'row',
@@ -543,8 +690,9 @@ const styles = StyleSheet.create({
         gap: spacing.xs,
     },
     address: {
-        ...typography.body,
-        color: colors.textSecondary,
+        fontSize: 16,
+        fontWeight: '600',
+        color: colors.text,
         flex: 1,
     },
     badgeRow: {

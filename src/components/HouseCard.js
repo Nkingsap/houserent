@@ -34,17 +34,22 @@ const HouseCard = ({ listing, onPress, onFavorite, isFavorited, compact, distanc
                             <Ionicons name="home-outline" size={24} color={colors.cardDarkTextMuted} />
                         </View>
                     )}
-                    <View style={styles.compactPriceBadge}>
-                        <Text style={styles.compactPriceText}>{formatPrice(listing.price)}/mo</Text>
-                    </View>
                 </View>
                 <View style={styles.compactInfo}>
-                    <Text style={styles.compactTitle} numberOfLines={1}>
-                        {listing.title}
-                    </Text>
-                    <Text style={styles.compactAddress} numberOfLines={1}>
-                        {listing.address}
-                    </Text>
+                    <View style={styles.compactTitleRow}>
+                        <Text style={styles.compactTitle} numberOfLines={1}>
+                            {listing.title}
+                        </Text>
+                        <View style={styles.compactPriceBadge}>
+                            <Text style={styles.compactPriceText}>{formatPrice(listing.price)}/mo</Text>
+                        </View>
+                    </View>
+                    <View style={styles.compactAddressRow}>
+                        <Ionicons name="location" size={13} color={colors.primary} />
+                        <Text style={styles.compactAddress} numberOfLines={1}>
+                            {listing.address}
+                        </Text>
+                    </View>
                     <View style={styles.compactSpecs}>
                         <View style={styles.specItem}>
                             <Ionicons name="bed-outline" size={12} color={colors.cardDarkTextMuted} />
@@ -80,12 +85,7 @@ const HouseCard = ({ listing, onPress, onFavorite, isFavorited, compact, distanc
                     </View>
                 )}
 
-                <View style={styles.imageBadges}>
-                    <View style={styles.priceBadge}>
-                        <Text style={styles.priceText}>₹{listing.price.toLocaleString()}</Text>
-                        <Text style={styles.priceUnit}>/month</Text>
-                    </View>
-                </View>
+
 
                 {onFavorite && (
                     <TouchableOpacity
@@ -120,11 +120,17 @@ const HouseCard = ({ listing, onPress, onFavorite, isFavorited, compact, distanc
             </View>
 
             <View style={styles.info}>
-                <Text style={styles.title} numberOfLines={1}>
-                    {listing.title}
-                </Text>
+                <View style={styles.titleRow}>
+                    <Text style={styles.title} numberOfLines={1}>
+                        {listing.title}
+                    </Text>
+                    <View style={styles.priceBadge}>
+                        <Text style={styles.priceText}>₹{listing.price.toLocaleString()}</Text>
+                        <Text style={styles.priceUnit}>/month</Text>
+                    </View>
+                </View>
                 <View style={styles.addressRow}>
-                    <Ionicons name="location-outline" size={14} color={colors.cardDarkTextMuted} />
+                    <Ionicons name="location" size={18} color={colors.primary} />
                     <Text style={styles.address} numberOfLines={1}>
                         {listing.address}, {listing.city}
                     </Text>
@@ -183,28 +189,25 @@ const styles = StyleSheet.create({
         color: colors.cardDarkTextMuted,
         marginTop: spacing.xs,
     },
-    imageBadges: {
-        position: 'absolute',
-        bottom: spacing.md,
-        left: spacing.md,
-    },
     priceBadge: {
         flexDirection: 'row',
         alignItems: 'baseline',
-        backgroundColor: 'rgba(0,0,0,0.85)',
+        backgroundColor: colors.primary,
         paddingHorizontal: spacing.md,
-        paddingVertical: spacing.sm,
+        paddingVertical: spacing.xs,
         borderRadius: borderRadius.sm,
     },
     priceText: {
         ...typography.price,
         color: '#FFFFFF',
-        fontSize: 18,
+        fontSize: 16,
+        fontWeight: '800',
     },
     priceUnit: {
         ...typography.caption,
         marginLeft: 2,
-        color: 'rgba(255,255,255,0.6)',
+        color: 'rgba(255,255,255,0.8)',
+        fontSize: 11,
     },
     favoriteBtn: {
         position: 'absolute',
@@ -253,10 +256,17 @@ const styles = StyleSheet.create({
     info: {
         padding: spacing.lg,
     },
+    titleRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: spacing.xs,
+    },
     title: {
         ...typography.h3,
         color: colors.cardDarkText,
-        marginBottom: spacing.xs,
+        flex: 1,
+        marginRight: spacing.sm,
     },
     addressRow: {
         flexDirection: 'row',
@@ -264,8 +274,9 @@ const styles = StyleSheet.create({
         gap: spacing.xs,
     },
     address: {
-        ...typography.caption,
-        color: colors.cardDarkTextMuted,
+        fontSize: 15,
+        fontWeight: '600',
+        color: colors.cardDarkText,
         flex: 1,
     },
     divider: {
@@ -319,33 +330,43 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     compactPriceBadge: {
-        position: 'absolute',
-        bottom: spacing.sm,
-        left: spacing.sm,
-        backgroundColor: 'rgba(0,0,0,0.85)',
-        paddingHorizontal: spacing.sm,
-        paddingVertical: 3,
+        backgroundColor: colors.primary,
+        paddingHorizontal: spacing.xs,
+        paddingVertical: 2,
         borderRadius: borderRadius.sm,
     },
     compactPriceText: {
         color: '#FFFFFF',
-        fontSize: 13,
+        fontSize: 10,
         fontWeight: '700',
     },
     compactInfo: {
         padding: spacing.sm,
     },
+    compactTitleRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 2,
+    },
     compactTitle: {
         ...typography.bodyBold,
         color: colors.cardDarkText,
         fontSize: 14,
-        marginBottom: 2,
+        flex: 1,
+        marginRight: spacing.xs,
+    },
+    compactAddressRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 3,
+        marginBottom: spacing.xs,
     },
     compactAddress: {
-        ...typography.caption,
-        color: colors.cardDarkTextMuted,
-        fontSize: 11,
-        marginBottom: spacing.xs,
+        fontSize: 12,
+        fontWeight: '600',
+        color: colors.cardDarkText,
+        flex: 1,
     },
     compactSpecs: {
         flexDirection: 'row',
