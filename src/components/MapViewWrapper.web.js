@@ -4,8 +4,9 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography, borderRadius } from '../theme';
 
-// Stub Marker for web so importing { Marker } doesn't break anything
+// Stub Marker and Callout for web so importing them doesn't break anything
 export const Marker = () => null;
+export const Callout = () => null;
 
 /**
  * Web placeholder shown instead of an interactive map.

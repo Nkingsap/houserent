@@ -14,7 +14,7 @@ import { colors, spacing, borderRadius, typography } from '../../theme';
 const faqData = [
     {
         question: 'How do I search for a rental property?',
-        answer: 'Use the Explore tab to browse listings. You can apply filters like location, price range, and property type to find the perfect home.',
+        answer: 'Use the Map tab to browse all listings on an interactive map. Tap any marker to see property details and navigate to the full listing.',
     },
     {
         question: 'How do I contact a property owner?',

@@ -11,9 +11,12 @@ import {
     Alert,
     Image,
     Modal,
+    Platform,
+    ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as Location from 'expo-location';
 import MapView, { Marker } from '../../components/MapViewWrapper';
 import { colors, spacing, borderRadius, typography, shadows } from '../../theme';
 import AmenityTag from '../../components/AmenityTag';
@@ -22,8 +25,6 @@ import { useAuth } from '../../context/AuthContext';
 
 const { width } = Dimensions.get('window');
 
-
-
 const HouseDetailScreen = ({ navigation, route }) => {
     const { listing } = route.params;
     const { user } = useAuth();
@@ -31,15 +32,35 @@ const HouseDetailScreen = ({ navigation, route }) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [fullscreenMap, setFullscreenMap] = useState(false);
     const [mapType, setMapType] = useState('hybrid');
+    const [userLocation, setUserLocation] = useState(null);
+    const [locatingUser, setLocatingUser] = useState(false);
+    const fullscreenMapRef = useRef(null);
 
     useEffect(() => {
         checkFavorite();
+        getUserLocation();
     }, []);
 
     const checkFavorite = async () => {
         if (user) {
             const { favorites } = await apiGetFavorites(user.id);
             setFavorited(favorites.includes(listing.id));
+        }
+    };
+
+    const getUserLocation = async () => {
+        try {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') return;
+            const loc = await Location.getCurrentPositionAsync({
+                accuracy: Location.Accuracy.Balanced,
+            });
+            setUserLocation({
+                latitude: loc.coords.latitude,
+                longitude: loc.coords.longitude,
+            });
+        } catch (_) {
+            // silently ignore
         }
     };
 
@@ -57,12 +78,61 @@ const HouseDetailScreen = ({ navigation, route }) => {
         Linking.openURL(`sms:${listing.ownerPhone || '+919876543210'}`);
     };
 
+    const openDirectionsInGoogleMaps = () => {
+        const destination = `${listing.latitude},${listing.longitude}`;
+        const label = encodeURIComponent(listing.title || 'Property');
+
+        // Use Google Maps directions URL with destination pre-set
+        // This will automatically use the user's current location as origin
+        const url = Platform.select({
+            ios: `comgooglemaps://?daddr=${destination}&directionsmode=driving`,
+            android: `google.navigation:q=${destination}`,
+        });
+
+        const webUrl = `https://www.google.com/maps/dir/?api=1&destination=${destination}&destination_place_id=&travelmode=driving`;
+
+        Linking.canOpenURL(url).then((supported) => {
+            if (supported) {
+                Linking.openURL(url);
+            } else {
+                // Fallback to web Google Maps
+                Linking.openURL(webUrl);
+            }
+        }).catch(() => {
+            Linking.openURL(webUrl);
+        });
+    };
+
     const specs = [
         { icon: 'bed-outline', label: 'Bedrooms', value: listing.bedrooms },
         { icon: 'water-outline', label: 'Bathrooms', value: listing.bathrooms },
         { icon: 'resize-outline', label: 'Area', value: `${listing.area} ft²` },
         { icon: 'home-outline', label: 'Type', value: listing.type?.charAt(0).toUpperCase() + listing.type?.slice(1) },
     ];
+
+    // Calculate the map region to show both user and property
+    const getMapRegion = () => {
+        if (userLocation) {
+            const minLat = Math.min(userLocation.latitude, listing.latitude);
+            const maxLat = Math.max(userLocation.latitude, listing.latitude);
+            const minLng = Math.min(userLocation.longitude, listing.longitude);
+            const maxLng = Math.max(userLocation.longitude, listing.longitude);
+            const latDelta = (maxLat - minLat) * 1.5 || 0.01;
+            const lngDelta = (maxLng - minLng) * 1.5 || 0.01;
+            return {
+                latitude: (minLat + maxLat) / 2,
+                longitude: (minLng + maxLng) / 2,
+                latitudeDelta: Math.max(latDelta, 0.01),
+                longitudeDelta: Math.max(lngDelta, 0.01),
+            };
+        }
+        return {
+            latitude: listing.latitude,
+            longitude: listing.longitude,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01,
+        };
+    };
 
     return (
         <View style={styles.container}>
@@ -191,9 +261,20 @@ const HouseDetailScreen = ({ navigation, route }) => {
                         </View>
                     )}
 
-                    {/* Map */}
+                    {/* Location & Directions Section */}
                     <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Location</Text>
+                        <View style={styles.locationHeader}>
+                            <Text style={styles.sectionTitle}>Location</Text>
+                            <TouchableOpacity
+                                style={styles.expandMapBtn}
+                                onPress={() => setFullscreenMap(true)}
+                            >
+                                <Ionicons name="expand-outline" size={16} color={colors.primary} />
+                                <Text style={styles.expandMapText}>Expand</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        {/* Map */}
                         <View style={styles.mapContainer}>
                             <MapView
                                 style={styles.map}
@@ -226,14 +307,6 @@ const HouseDetailScreen = ({ navigation, route }) => {
                                 </Marker>
                             </MapView>
 
-                            {/* Fullscreen button */}
-                            <TouchableOpacity
-                                style={styles.mapFullscreenBtn}
-                                onPress={() => setFullscreenMap(true)}
-                            >
-                                <Ionicons name="expand" size={18} color="#fff" />
-                            </TouchableOpacity>
-
                             {/* Map type toggle */}
                             <View style={styles.mapTypeRow}>
                                 {['standard', 'hybrid', 'satellite'].map((type) => (
@@ -249,9 +322,26 @@ const HouseDetailScreen = ({ navigation, route }) => {
                                 ))}
                             </View>
                         </View>
+
                         <Text style={styles.mapAddress}>
                             {listing.address}, {listing.city}
                         </Text>
+
+                        {/* ★ Get Directions Button — prominent and clear */}
+                        <TouchableOpacity
+                            style={styles.directionsBtn}
+                            onPress={openDirectionsInGoogleMaps}
+                            activeOpacity={0.85}
+                        >
+                            <View style={styles.directionsBtnIcon}>
+                                <Ionicons name="navigate" size={20} color="#FFFFFF" />
+                            </View>
+                            <View style={styles.directionsBtnContent}>
+                                <Text style={styles.directionsBtnTitle}>Get Directions</Text>
+                                <Text style={styles.directionsBtnSubtitle}>Open in Google Maps</Text>
+                            </View>
+                            <Ionicons name="open-outline" size={18} color="rgba(255,255,255,0.7)" />
+                        </TouchableOpacity>
                     </View>
 
                     {/* Fullscreen Map Modal */}
@@ -265,13 +355,9 @@ const HouseDetailScreen = ({ navigation, route }) => {
                             <StatusBar barStyle="light-content" backgroundColor="#000" translucent />
 
                             <MapView
+                                ref={fullscreenMapRef}
                                 style={StyleSheet.absoluteFillObject}
-                                initialRegion={{
-                                    latitude: listing.latitude,
-                                    longitude: listing.longitude,
-                                    latitudeDelta: 0.01,
-                                    longitudeDelta: 0.01,
-                                }}
+                                initialRegion={getMapRegion()}
                                 mapType={mapType}
                                 pitchEnabled={true}
                                 rotateEnabled={true}
@@ -279,9 +365,11 @@ const HouseDetailScreen = ({ navigation, route }) => {
                                 showsBuildings={true}
                                 showsCompass={true}
                                 showsUserLocation={true}
-                                showsMyLocationButton={false}
+                                showsMyLocationButton={true}
                                 showsScale={true}
+                                showsTraffic={true}
                             >
+                                {/* Property marker */}
                                 <Marker
                                     coordinate={{
                                         latitude: listing.latitude,
@@ -324,6 +412,16 @@ const HouseDetailScreen = ({ navigation, route }) => {
                                     </TouchableOpacity>
                                 ))}
                             </View>
+
+                            {/* Directions button on fullscreen map */}
+                            <TouchableOpacity
+                                style={styles.fsDirectionsBtn}
+                                onPress={openDirectionsInGoogleMaps}
+                                activeOpacity={0.85}
+                            >
+                                <Ionicons name="navigate" size={20} color="#FFFFFF" />
+                                <Text style={styles.fsDirectionsBtnText}>Directions</Text>
+                            </TouchableOpacity>
                         </SafeAreaView>
                     </Modal>
 
@@ -520,6 +618,30 @@ const styles = StyleSheet.create({
         flexWrap: 'wrap',
         gap: spacing.sm,
     },
+
+    // ── Location header ──
+    locationHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: spacing.md,
+    },
+    expandMapBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 10,
+        backgroundColor: `${colors.primary}15`,
+    },
+    expandMapText: {
+        fontSize: 13,
+        fontWeight: '600',
+        color: colors.primary,
+    },
+
+    // ── Map ──
     mapContainer: {
         height: 200,
         borderRadius: borderRadius.lg,
@@ -527,17 +649,6 @@ const styles = StyleSheet.create({
     },
     map: {
         flex: 1,
-    },
-    mapFullscreenBtn: {
-        position: 'absolute',
-        top: 10,
-        right: 10,
-        width: 38,
-        height: 38,
-        borderRadius: 9,
-        backgroundColor: 'rgba(0,0,0,0.65)',
-        justifyContent: 'center',
-        alignItems: 'center',
     },
     mapTypeRow: {
         position: 'absolute',
@@ -565,6 +676,52 @@ const styles = StyleSheet.create({
     mapTypeTxtActive: {
         color: '#111',
     },
+    mapAddress: {
+        ...typography.caption,
+        marginTop: spacing.sm,
+        color: colors.textSecondary,
+    },
+
+    // ── Directions Button (in-page) ──
+    directionsBtn: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: colors.primary,
+        borderRadius: 16,
+        padding: 14,
+        marginTop: spacing.md,
+        gap: 12,
+        ...(Platform.OS === 'ios' ? {
+            shadowColor: colors.primary,
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.35,
+            shadowRadius: 12,
+        } : { elevation: 8 }),
+    },
+    directionsBtnIcon: {
+        width: 42,
+        height: 42,
+        borderRadius: 12,
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    directionsBtnContent: {
+        flex: 1,
+    },
+    directionsBtnTitle: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: '700',
+        letterSpacing: 0.2,
+    },
+    directionsBtnSubtitle: {
+        color: 'rgba(255,255,255,0.75)',
+        fontSize: 12,
+        fontWeight: '500',
+        marginTop: 1,
+    },
+
     // ── Fullscreen Modal ──
     fsContainer: {
         flex: 1,
@@ -604,7 +761,7 @@ const styles = StyleSheet.create({
     },
     fsMapTypeRow: {
         position: 'absolute',
-        bottom: 40,
+        bottom: 100,
         alignSelf: 'center',
         flexDirection: 'row',
         backgroundColor: 'rgba(0,0,0,0.65)',
@@ -629,6 +786,33 @@ const styles = StyleSheet.create({
     fsMapTypeTxtActive: {
         color: '#111',
     },
+    fsDirectionsBtn: {
+        position: 'absolute',
+        bottom: 40,
+        alignSelf: 'center',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
+        backgroundColor: colors.primary,
+        paddingHorizontal: 28,
+        paddingVertical: 14,
+        borderRadius: 28,
+        zIndex: 10,
+        ...(Platform.OS === 'ios' ? {
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.35,
+            shadowRadius: 12,
+        } : { elevation: 8 }),
+    },
+    fsDirectionsBtnText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: '700',
+        letterSpacing: 0.3,
+    },
+
+    // ── Map marker ──
     mapMarker: {
         width: 40,
         height: 40,
@@ -642,11 +826,8 @@ const styles = StyleSheet.create({
         shadowRadius: 4,
         elevation: 6,
     },
-    mapAddress: {
-        ...typography.caption,
-        marginTop: spacing.sm,
-        color: colors.textSecondary,
-    },
+
+    // ── Bottom Bar ──
     bottomBar: {
         position: 'absolute',
         bottom: 0,
@@ -675,6 +856,16 @@ const styles = StyleSheet.create({
     bottomActions: {
         flexDirection: 'row',
         gap: spacing.sm,
+        alignItems: 'center',
+    },
+    directionsSmallBtn: {
+        width: 48,
+        height: 48,
+        borderRadius: 14,
+        backgroundColor: `${colors.primary}15`,
+        borderWidth: 1.5,
+        borderColor: `${colors.primary}30`,
+        justifyContent: 'center',
         alignItems: 'center',
     },
     callBtn: {

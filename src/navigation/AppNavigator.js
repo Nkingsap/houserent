@@ -13,6 +13,7 @@ import RegisterScreen from '../screens/RegisterScreen';
 
 // User screens
 import HomeScreen from '../screens/user/HomeScreen';
+import MapScreen from '../screens/user/MapScreen';
 import ExploreScreen from '../screens/user/ExploreScreen';
 import HouseDetailScreen from '../screens/user/HouseDetailScreen';
 import SavedScreen from '../screens/user/SavedScreen';
@@ -56,7 +57,7 @@ const UserTabs = () => (
             tabBarIcon: ({ color, size }) => {
                 const icons = {
                     Home: 'home',
-                    Explore: 'search',
+                    Map: 'map',
                     Saved: 'heart',
                     Profile: 'person',
                 };
@@ -65,7 +66,7 @@ const UserTabs = () => (
         })}
     >
         <Tab.Screen name="Home" component={HomeScreen} />
-        <Tab.Screen name="Explore" component={ExploreScreen} />
+        <Tab.Screen name="Map" component={MapScreen} />
         <Tab.Screen name="Saved" component={SavedScreen} />
         <Tab.Screen name="Profile" component={ProfileScreen} />
     </Tab.Navigator>
@@ -135,6 +136,10 @@ const AppNavigator = () => {
                             name="HouseDetail"
                             component={HouseDetailScreen}
                             options={{ presentation: 'modal', animation: 'slide_from_bottom' }}
+                        />
+                        <Stack.Screen
+                            name="Explore"
+                            component={ExploreScreen}
                         />
                         <Stack.Screen
                             name="About"

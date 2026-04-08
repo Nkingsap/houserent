@@ -63,7 +63,7 @@ const HomeScreen = ({ navigation }) => {
     };
 
     const handleMapView = () => {
-        navigation.navigate('Explore', { viewMode: 'map' });
+        navigation.navigate('Map');
     };
 
     const quickFilters = [
