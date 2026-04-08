@@ -8,6 +8,7 @@ import {
     StatusBar,
     Linking,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '../../theme';
 
@@ -15,7 +16,7 @@ const APP_VERSION = '1.0.0';
 
 const AboutScreen = ({ navigation }) => {
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
             {/* Header */}
@@ -117,7 +118,7 @@ const AboutScreen = ({ navigation }) => {
                     © 2026 HouseRent. All rights reserved.
                 </Text>
             </ScrollView>
-        </View>
+        </SafeAreaView>
     );
 };
 
@@ -131,7 +132,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: spacing.xl,
-        paddingTop: 60,
+        paddingTop: spacing.md,
         paddingBottom: spacing.lg,
     },
     backBtn: {

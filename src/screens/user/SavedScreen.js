@@ -8,6 +8,7 @@ import {
     TouchableOpacity,
     Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { colors, spacing, typography } from '../../theme';
@@ -38,7 +39,7 @@ const SavedScreen = ({ navigation }) => {
     };
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
             <View style={styles.header}>
@@ -68,7 +69,7 @@ const SavedScreen = ({ navigation }) => {
                     )}
                 />
             )}
-        </View>
+        </SafeAreaView>
     );
 };
 
@@ -79,7 +80,7 @@ const styles = StyleSheet.create({
     },
     header: {
         paddingHorizontal: spacing.xl,
-        paddingTop: 60,
+        paddingTop: spacing.lg,
         paddingBottom: spacing.lg,
         flexDirection: 'row',
         justifyContent: 'space-between',

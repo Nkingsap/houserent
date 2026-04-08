@@ -8,6 +8,7 @@ import {
     StatusBar,
     Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '../../theme';
 import InputField from '../../components/InputField';
@@ -36,7 +37,7 @@ const OwnerProfileScreen = ({ navigation }) => {
     };
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
             <ScrollView showsVerticalScrollIndicator={false}>
@@ -148,7 +149,7 @@ const OwnerProfileScreen = ({ navigation }) => {
 
                 <View style={{ height: spacing.xxxl }} />
             </ScrollView>
-        </View>
+        </SafeAreaView>
     );
 };
 
@@ -156,7 +157,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: colors.background },
     header: {
         paddingHorizontal: spacing.xl,
-        paddingTop: 60,
+        paddingTop: spacing.lg,
         paddingBottom: spacing.lg,
     },
     headerTitle: { ...typography.h1 },

@@ -9,6 +9,7 @@ import {
     Alert,
     RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { colors, spacing, borderRadius, typography, shadows } from '../../theme';
@@ -62,7 +63,7 @@ const DashboardScreen = ({ navigation }) => {
     const availableCount = listings.filter((l) => l.available).length;
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
             <FlatList
@@ -158,7 +159,7 @@ const DashboardScreen = ({ navigation }) => {
                     </View>
                 )}
             />
-        </View>
+        </SafeAreaView>
     );
 };
 
@@ -171,7 +172,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        paddingTop: 60,
+        paddingTop: spacing.lg,
         paddingBottom: spacing.xl,
     },
     greeting: {

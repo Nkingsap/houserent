@@ -151,7 +151,7 @@ const HouseDetailScreen = ({ navigation, route }) => {
 
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
             <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
@@ -517,7 +517,7 @@ const HouseDetailScreen = ({ navigation, route }) => {
                     </TouchableOpacity>
                 </View>
             </View>
-        </View>
+        </SafeAreaView>
     );
 };
 
@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
     },
     topBar: {
         position: 'absolute',
-        top: 50,
+        top: spacing.sm,
         left: spacing.lg,
         right: spacing.lg,
         flexDirection: 'row',

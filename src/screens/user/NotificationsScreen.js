@@ -8,6 +8,7 @@ import {
     StatusBar,
     Switch,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, typography } from '../../theme';
 
@@ -40,7 +41,7 @@ const NotificationsScreen = ({ navigation }) => {
     );
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
             {/* Header */}
@@ -111,7 +112,7 @@ const NotificationsScreen = ({ navigation }) => {
                     />
                 </View>
             </ScrollView>
-        </View>
+        </SafeAreaView>
     );
 };
 
@@ -125,7 +126,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: spacing.xl,
-        paddingTop: 60,
+        paddingTop: spacing.md,
         paddingBottom: spacing.lg,
     },
     backBtn: {

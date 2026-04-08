@@ -9,6 +9,7 @@ import {
     Dimensions,
     Image,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '../theme';
 
@@ -42,7 +43,7 @@ const WelcomeScreen = ({ navigation }) => {
     }, []);
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
             {/* Background decorative elements */}
@@ -108,7 +109,7 @@ const WelcomeScreen = ({ navigation }) => {
                     </Text>
                 </TouchableOpacity>
             </Animated.View>
-        </View>
+        </SafeAreaView>
     );
 };
 
@@ -117,8 +118,8 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: colors.background,
         justifyContent: 'space-between',
-        paddingTop: 80,
-        paddingBottom: 40,
+        paddingTop: spacing.xl,
+        paddingBottom: spacing.lg,
     },
     bgCircle1: {
         position: 'absolute',

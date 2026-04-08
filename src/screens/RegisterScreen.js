@@ -10,6 +10,7 @@ import {
     Alert,
     StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '../theme';
 import InputField from '../components/InputField';
@@ -51,7 +52,7 @@ const RegisterScreen = ({ navigation }) => {
     };
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container}>
             <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
             <LoadingOverlay visible={loading} />
 
@@ -177,7 +178,7 @@ const RegisterScreen = ({ navigation }) => {
                     </TouchableOpacity>
                 </ScrollView>
             </KeyboardAvoidingView>
-        </View>
+        </SafeAreaView>
     );
 };
 
@@ -189,7 +190,7 @@ const styles = StyleSheet.create({
     scroll: {
         flexGrow: 1,
         paddingHorizontal: spacing.xl,
-        paddingTop: 60,
+        paddingTop: spacing.lg,
         paddingBottom: spacing.xxl,
     },
     backBtn: {

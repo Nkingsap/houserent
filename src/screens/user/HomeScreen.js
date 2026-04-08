@@ -9,6 +9,7 @@ import {
     StatusBar,
     RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -73,7 +74,7 @@ const HomeScreen = ({ navigation }) => {
     ];
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
             <ScrollView
@@ -162,7 +163,7 @@ const HomeScreen = ({ navigation }) => {
                             data={featured}
                             horizontal
                             showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={{ paddingHorizontal: spacing.xl }}
+                            contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: spacing.sm }}
                             keyExtractor={(item) => item.id}
                             renderItem={({ item }) => (
                                 <HouseCard
@@ -203,7 +204,7 @@ const HomeScreen = ({ navigation }) => {
                     )}
                 </View>
             </ScrollView>
-        </View>
+        </SafeAreaView>
     );
 };
 
@@ -217,7 +218,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: spacing.xl,
-        paddingTop: 60,
+        paddingTop: spacing.lg,
         paddingBottom: spacing.lg,
     },
     greeting: {
@@ -297,7 +298,7 @@ const styles = StyleSheet.create({
         fontWeight: '500',
     },
     section: {
-        marginBottom: spacing.xxl,
+        marginBottom: spacing.xxxl,
     },
     sectionHeader: {
         flexDirection: 'row',

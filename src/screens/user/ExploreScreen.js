@@ -184,7 +184,7 @@ const ExploreScreen = ({ navigation, route }) => {
     const activeFiltersCount = [filters.type, filters.minPrice, filters.bedrooms].filter(Boolean).length;
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
 
             {/* Header */}
@@ -319,7 +319,7 @@ const ExploreScreen = ({ navigation, route }) => {
                     )}
                 />
             )}
-        </View>
+        </SafeAreaView>
     );
 };
 
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: spacing.xl,
-        paddingTop: 60,
+        paddingTop: spacing.md,
         paddingBottom: spacing.sm,
     },
     headerLeft: {

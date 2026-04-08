@@ -351,7 +351,7 @@ const AddListingScreen = ({ navigation, route }) => {
     };
 
     return (
-        <View style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
             <LoadingOverlay visible={loading} />
 
@@ -817,7 +817,7 @@ const AddListingScreen = ({ navigation, route }) => {
                     </TouchableOpacity>
                 </TouchableOpacity>
             </Modal>
-        </View>
+        </SafeAreaView>
     );
 };
 
@@ -830,7 +830,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: spacing.xl,
-        paddingTop: 56,
+        paddingTop: spacing.md,
         paddingBottom: spacing.lg,
         gap: spacing.md,
     },
