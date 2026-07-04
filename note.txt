@@ -3,3 +3,5 @@
  ota update
 
  yarn add -D @expo/ngrok@^4.1.0
+
+ npx eas-cli build --profile preview --platform android 2>&1

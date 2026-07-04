@@ -2,13 +2,14 @@ import React from 'react';
 import {
     View,
     Text,
-    Image,
     TouchableOpacity,
     StyleSheet,
     Dimensions,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography, shadows } from '../theme';
+import { getThumbnailUrl } from '../services/apiService';
 
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - spacing.xl * 2;
@@ -28,7 +29,7 @@ const HouseCard = ({ listing, onPress, onFavorite, isFavorited, compact, distanc
             >
                 <View style={styles.compactImageContainer}>
                     {listing.images && listing.images.length > 0 ? (
-                        <Image source={{ uri: listing.images[0] }} style={styles.compactImage} />
+                        <Image source={getThumbnailUrl(listing.images[0], 200, 130)} style={styles.compactImage} cachePolicy="memory-disk" transition={200} contentFit="cover" />
                     ) : (
                         <View style={styles.compactPlaceholder}>
                             <Ionicons name="home-outline" size={24} color={colors.cardDarkTextMuted} />
@@ -77,7 +78,7 @@ const HouseCard = ({ listing, onPress, onFavorite, isFavorited, compact, distanc
         >
             <View style={styles.imageContainer}>
                 {listing.images && listing.images.length > 0 ? (
-                    <Image source={{ uri: listing.images[0] }} style={styles.image} />
+                    <Image source={getThumbnailUrl(listing.images[0])} style={styles.image} cachePolicy="memory-disk" transition={200} contentFit="cover" />
                 ) : (
                     <View style={styles.placeholder}>
                         <Ionicons name="home-outline" size={40} color={colors.textMuted} />
@@ -176,7 +177,6 @@ const styles = StyleSheet.create({
     image: {
         width: '100%',
         height: '100%',
-        resizeMode: 'cover',
     },
     placeholder: {
         flex: 1,
@@ -322,7 +322,6 @@ const styles = StyleSheet.create({
     compactImage: {
         width: '100%',
         height: '100%',
-        resizeMode: 'cover',
     },
     compactPlaceholder: {
         flex: 1,

@@ -59,6 +59,9 @@ const ExploreScreen = ({ navigation, route }) => {
     const [results, setResults] = useState([]);
     const [favorites, setFavorites] = useState([]);
     const [showFilters, setShowFilters] = useState(false);
+    const [total, setTotal] = useState(0);
+    const [loadingMore, setLoadingMore] = useState(false);
+    const [hasMore, setHasMore] = useState(true);
 
     // Near Me
     const [nearMe, setNearMe] = useState(false);
@@ -66,6 +69,8 @@ const ExploreScreen = ({ navigation, route }) => {
     const [locationRefreshing, setLocationRefreshing] = useState(false); // silent bg GPS refresh
     const [userLocation, setUserLocation] = useState(null);
     const [nearMeRadius, setNearMeRadius] = useState(20);
+
+    const PAGE_SIZE = 20;
 
     // Sync query from HomeScreen navigation param
     useEffect(() => {
@@ -105,18 +110,30 @@ const ExploreScreen = ({ navigation, route }) => {
         }
     }, [route.params?.nearMe]);
 
-    const doSearch = async () => {
-        const { listings: data } = await apiGetListings({
-            q: query || undefined,
-            type: filters.type || undefined,
-            minPrice: filters.minPrice || undefined,
-            maxPrice: filters.maxPrice || undefined,
-            bedrooms: filters.bedrooms || undefined,
-        });
-        let available = data.filter((l) => l.available);
+    const doSearch = async (append = false) => {
+        const offset = append ? results.length : 0;
+
+        // Fetch listings and favorites in PARALLEL
+        const [listingsRes, favRes] = await Promise.all([
+            apiGetListings({
+                q: query || undefined,
+                type: filters.type || undefined,
+                minPrice: filters.minPrice || undefined,
+                maxPrice: filters.maxPrice || undefined,
+                bedrooms: filters.bedrooms || undefined,
+                limit: PAGE_SIZE,
+                offset,
+            }),
+            !append && user ? apiGetFavorites(user.id) : { favorites: favorites },
+        ]);
+
+        let data = listingsRes.listings;
+        setTotal(listingsRes.total || 0);
+        setHasMore(data.length >= PAGE_SIZE);
+
         // Filter & sort by distance when Near Me is on
         if (nearMe && userLocation) {
-            available = available
+            data = data
                 .map((l) => ({
                     ...l,
                     _dist: haversine(userLocation.latitude, userLocation.longitude, l.latitude, l.longitude),
@@ -124,10 +141,15 @@ const ExploreScreen = ({ navigation, route }) => {
                 .filter((l) => l._dist <= nearMeRadius)   // ← only within radius
                 .sort((a, b) => a._dist - b._dist);
         }
-        setResults(available);
-        if (user) {
-            const { favorites } = await apiGetFavorites(user.id);
-            setFavorites(favorites);
+
+        if (append) {
+            setResults((prev) => [...prev, ...data]);
+        } else {
+            setResults(data);
+        }
+
+        if (!append) {
+            setFavorites(favRes.favorites);
         }
     };
 
@@ -137,11 +159,21 @@ const ExploreScreen = ({ navigation, route }) => {
         }, [query, filters, nearMe, userLocation, nearMeRadius])
     );
 
+    // Infinite scroll — load next page
+    const handleLoadMore = async () => {
+        if (loadingMore || !hasMore || nearMe) return; // disable pagination for nearMe (client-side distance filter)
+        setLoadingMore(true);
+        await doSearch(true);
+        setLoadingMore(false);
+    };
+
+    // Optimistic favorite toggle — no extra API call to re-fetch
     const handleFavorite = async (listingId) => {
         if (!user) return;
-        await apiToggleFavorite(user.id, listingId);
-        const { favorites } = await apiGetFavorites(user.id);
-        setFavorites(favorites);
+        const { favorited } = await apiToggleFavorite(user.id, listingId);
+        setFavorites((prev) =>
+            favorited ? [...prev, listingId] : prev.filter((id) => id !== listingId)
+        );
     };
 
     const toggleNearMe = async () => {
@@ -279,7 +311,7 @@ const ExploreScreen = ({ navigation, route }) => {
             {/* Results count bar */}
             <View style={styles.resultBar}>
                 <Text style={styles.resultCount}>
-                    {results.length} {results.length === 1 ? 'property' : 'properties'} found
+                    {nearMe ? results.length : total} {(nearMe ? results.length : total) === 1 ? 'property' : 'properties'} found
                     {nearMe ? ` within ${nearMeRadius} km` : ''}
                 </Text>
                 {activeFiltersCount > 0 && (
@@ -308,6 +340,13 @@ const ExploreScreen = ({ navigation, route }) => {
                     keyExtractor={(item) => item.id}
                     contentContainerStyle={styles.listContent}
                     showsVerticalScrollIndicator={false}
+                    onEndReached={handleLoadMore}
+                    onEndReachedThreshold={0.3}
+                    ListFooterComponent={loadingMore ? (
+                        <View style={{ paddingVertical: 20, alignItems: 'center' }}>
+                            <ActivityIndicator size="small" color={colors.textMuted} />
+                        </View>
+                    ) : null}
                     renderItem={({ item }) => (
                         <HouseCard
                             listing={item}

@@ -16,6 +16,24 @@ const plugins = [
         },
     ],
     "expo-font",
+    [
+        "expo-build-properties",
+        {
+            "android": {
+                "enableProguardInReleaseBuilds": true,
+                "enableShrinkResourcesInReleaseBuilds": true,
+                "buildArchs": ["armeabi-v7a", "arm64-v8a"],
+                "extraProguardRules": `
+-keep class com.airbnb.android.react.maps.** { *; }
+-keep class com.google.android.gms.maps.** { *; }
+-keep class com.google.maps.android.** { *; }
+-keep class com.margelo.nitro.worklets.** { *; }
+-dontwarn com.margelo.nitro.worklets.**
+`
+            }
+        }
+    ],
+    "expo-image",
 ];
 
 // Only include expo-dev-client in development builds

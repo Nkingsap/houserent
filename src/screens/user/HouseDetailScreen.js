@@ -10,11 +10,11 @@ import {
     Dimensions,
     Linking,
     Alert,
-    Image,
     Modal,
     Platform,
     ActivityIndicator,
 } from 'react-native';
+import { Image } from 'expo-image';
 import FullscreenGallery from '../../components/FullscreenGallery';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,7 +22,7 @@ import * as Location from 'expo-location';
 import MapView, { Marker } from '../../components/MapViewWrapper';
 import { colors, spacing, borderRadius, typography, shadows } from '../../theme';
 import AmenityTag from '../../components/AmenityTag';
-import { apiGetFavorites, apiToggleFavorite } from '../../services/apiService';
+import { apiGetFavorites, apiToggleFavorite, getThumbnailUrl } from '../../services/apiService';
 import { useAuth } from '../../context/AuthContext';
 
 const { width, height: screenHeight } = Dimensions.get('window');
@@ -44,8 +44,11 @@ const HouseDetailScreen = ({ navigation, route }) => {
     const galleryListRef = useRef(null);
 
     useEffect(() => {
-        checkFavorite();
-        getUserLocation();
+        // Parallelize initial data fetches — was previously sequential
+        Promise.all([
+            checkFavorite(),
+            getUserLocation(),
+        ]);
     }, []);
 
     const checkFavorite = async () => {
@@ -184,7 +187,7 @@ const HouseDetailScreen = ({ navigation, route }) => {
                                     activeOpacity={0.9}
                                     onPress={() => openGallery(i)}
                                 >
-                                    <Image source={{ uri: img }} style={styles.galleryImage} />
+                                    <Image source={getThumbnailUrl(img, 800, Math.round(IMAGE_SECTION_HEIGHT))} style={styles.galleryImage} cachePolicy="memory-disk" transition={200} contentFit="cover" />
                                 </TouchableOpacity>
                             )}
                         />
@@ -535,7 +538,6 @@ const styles = StyleSheet.create({
     galleryImage: {
         width: width,
         height: IMAGE_SECTION_HEIGHT,
-        resizeMode: 'cover',
     },
     imageGradientTop: {
         position: 'absolute',

@@ -2,7 +2,6 @@ import React, { useRef, useState, useCallback } from 'react';
 import {
     View,
     Text,
-    Image,
     Modal,
     TouchableOpacity,
     StyleSheet,
@@ -11,6 +10,7 @@ import {
     Platform,
     ActivityIndicator,
 } from 'react-native';
+import { Image } from 'expo-image';
 import PagerView from 'react-native-pager-view';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, {
@@ -113,13 +113,17 @@ const ZoomableImage = ({ uri, panEnabled, onZoomChange }) => {
                         <Text style={styles.loaderText}>Loading...</Text>
                     </View>
                 )}
-                <Animated.Image
-                    source={{ uri }}
-                    style={[styles.fullImage, animatedStyle]}
-                    resizeMode="contain"
-                    onLoadStart={() => setIsLoading(true)}
-                    onLoadEnd={() => setIsLoading(false)}
-                />
+                <Animated.View style={[styles.fullImageContainer, animatedStyle]}>
+                    <Image
+                        source={uri}
+                        style={styles.fullImage}
+                        contentFit="contain"
+                        cachePolicy="memory-disk"
+                        transition={300}
+                        onLoadStart={() => setIsLoading(true)}
+                        onLoadEnd={() => setIsLoading(false)}
+                    />
+                </Animated.View>
             </View>
         </GestureDetector>
     );
@@ -240,9 +244,13 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    fullImage: {
+    fullImageContainer: {
         width: SCREEN_WIDTH,
         height: SCREEN_HEIGHT,
+    },
+    fullImage: {
+        width: '100%',
+        height: '100%',
     },
     closeBtn: {
         position: 'absolute',

@@ -22,11 +22,17 @@ const DashboardScreen = ({ navigation }) => {
     const { user } = useAuth();
     const [listings, setListings] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
+    const lastFetchRef = React.useRef(0);
+    const STALE_MS = 30_000;
 
-    const loadListings = async () => {
+    const loadListings = async (force = false) => {
         if (!user) return;
-        const { listings } = await apiGetListingsByOwner(user.id);
-        setListings(listings);
+        if (!force && Date.now() - lastFetchRef.current < STALE_MS && listings.length > 0) {
+            return;
+        }
+        const { listings: data } = await apiGetListingsByOwner(user.id);
+        setListings(data);
+        lastFetchRef.current = Date.now();
     };
 
     useFocusEffect(
@@ -37,7 +43,7 @@ const DashboardScreen = ({ navigation }) => {
 
     const onRefresh = async () => {
         setRefreshing(true);
-        await loadListings();
+        await loadListings(true); // force refresh
         setRefreshing(false);
     };
 
@@ -52,7 +58,7 @@ const DashboardScreen = ({ navigation }) => {
                     style: 'destructive',
                     onPress: async () => {
                         await apiDeleteListing(listing.id);
-                        loadListings();
+                        loadListings(true); // force reload after delete
                     },
                 },
             ]

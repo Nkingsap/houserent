@@ -20,11 +20,17 @@ import { useAuth } from '../../context/AuthContext';
 const SavedScreen = ({ navigation }) => {
     const { user } = useAuth();
     const [savedListings, setSavedListings] = useState([]);
+    const lastFetchRef = React.useRef(0);
+    const STALE_MS = 30_000;
 
-    const loadSaved = async () => {
+    const loadSaved = async (force = false) => {
         if (!user) return;
+        if (!force && Date.now() - lastFetchRef.current < STALE_MS && savedListings.length > 0) {
+            return;
+        }
         const { listings } = await apiGetFavoriteListings(user.id);
         setSavedListings(listings);
+        lastFetchRef.current = Date.now();
     };
 
     useFocusEffect(
@@ -35,7 +41,7 @@ const SavedScreen = ({ navigation }) => {
 
     const handleRemove = async (listingId) => {
         await apiToggleFavorite(user.id, listingId);
-        loadSaved();
+        loadSaved(true); // force reload after removing
     };
 
     return (

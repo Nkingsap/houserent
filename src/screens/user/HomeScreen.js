@@ -26,37 +26,51 @@ const HomeScreen = ({ navigation }) => {
     const [favorites, setFavorites] = useState([]);
     const [search, setSearch] = useState('');
     const [refreshing, setRefreshing] = useState(false);
+    const [total, setTotal] = useState(0);
+    const lastFetchRef = React.useRef(0);
 
+    const STALE_MS = 30_000; // 30 seconds
 
-    const loadData = async () => {
-        const { listings: all } = await apiGetListings();
-        const available = all.filter((l) => l.available);
-        setListings(available);
-        setFeatured(available.filter((l) => l.price >= 30000).slice(0, 5));
-        if (user) {
-            const { favorites } = await apiGetFavorites(user.id);
-            setFavorites(favorites);
+    const loadData = async (force = false) => {
+        // Skip re-fetch if data is still fresh (unless forced)
+        if (!force && Date.now() - lastFetchRef.current < STALE_MS && listings.length > 0) {
+            return;
         }
+
+        // Fetch listings (limit 6) and favorites in PARALLEL
+        const [listingsRes, favRes] = await Promise.all([
+            apiGetListings({ limit: 6 }),
+            user ? apiGetFavorites(user.id) : { favorites: [] },
+        ]);
+
+        const all = listingsRes.listings;
+        setListings(all);
+        setTotal(listingsRes.total || all.length);
+        setFeatured(all.filter((l) => l.price >= 30000).slice(0, 5));
+        setFavorites(favRes.favorites);
+        lastFetchRef.current = Date.now();
     };
 
     useFocusEffect(
         useCallback(() => {
-            loadData();
+            loadData(); // respects staleness — won't re-fetch if < 30s old
             setSearch(''); // clear search text on every visit
         }, [])
     );
 
     const onRefresh = async () => {
         setRefreshing(true);
-        await loadData();
+        await loadData(true); // force refresh
         setRefreshing(false);
     };
 
+    // Optimistic favorite toggle — no extra API call to re-fetch
     const handleFavorite = async (listingId) => {
         if (!user) return;
-        await apiToggleFavorite(user.id, listingId);
-        const { favorites } = await apiGetFavorites(user.id);
-        setFavorites(favorites);
+        const { favorited } = await apiToggleFavorite(user.id, listingId);
+        setFavorites((prev) =>
+            favorited ? [...prev, listingId] : prev.filter((id) => id !== listingId)
+        );
     };
 
     const handleSearch = () => {
@@ -180,10 +194,10 @@ const HomeScreen = ({ navigation }) => {
                 <View style={styles.section}>
                     <View style={styles.sectionHeader}>
                         <Text style={styles.sectionTitle}>All Listings</Text>
-                        <Text style={styles.countBadge}>{listings.length}</Text>
+                        <Text style={styles.countBadge}>{total}</Text>
                     </View>
                     <View style={styles.listingsList}>
-                        {listings.slice(0, 6).map((item) => (
+                        {listings.map((item) => (
                             <HouseCard
                                 key={item.id}
                                 listing={item}
@@ -193,7 +207,7 @@ const HomeScreen = ({ navigation }) => {
                             />
                         ))}
                     </View>
-                    {listings.length > 6 && (
+                    {total > 6 && (
                         <TouchableOpacity
                             style={styles.viewMoreBtn}
                             onPress={() => navigation.navigate('Explore')}
