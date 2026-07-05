@@ -16,6 +16,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { colors, spacing, borderRadius, typography } from '../../theme';
 import SearchBar from '../../components/SearchBar';
 import HouseCard from '../../components/HouseCard';
+import SkeletonCard from '../../components/SkeletonCard';
 import { apiGetListings, apiGetFavorites, apiToggleFavorite } from '../../services/apiService';
 import { useAuth } from '../../context/AuthContext';
 
@@ -26,6 +27,7 @@ const HomeScreen = ({ navigation }) => {
     const [favorites, setFavorites] = useState([]);
     const [search, setSearch] = useState('');
     const [refreshing, setRefreshing] = useState(false);
+    const [loading, setLoading] = useState(true);
     const [total, setTotal] = useState(0);
     const lastFetchRef = React.useRef(0);
 
@@ -49,6 +51,7 @@ const HomeScreen = ({ navigation }) => {
         setFeatured(all.filter((l) => l.price >= 30000).slice(0, 5));
         setFavorites(favRes.favorites);
         lastFetchRef.current = Date.now();
+        setLoading(false);
     };
 
     useFocusEffect(
@@ -189,6 +192,21 @@ const HomeScreen = ({ navigation }) => {
                         />
                     </View>
                 )}
+                {loading && featured.length === 0 && (
+                    <View style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <Text style={styles.sectionTitle}>Featured</Text>
+                        </View>
+                        <FlatList
+                            data={[1, 2, 3, 4, 5]}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: spacing.sm }}
+                            keyExtractor={(item) => String(item)}
+                            renderItem={() => <SkeletonCard compact />}
+                        />
+                    </View>
+                )}
 
                 {/* All Listings */}
                 <View style={styles.section}>
@@ -197,15 +215,18 @@ const HomeScreen = ({ navigation }) => {
                         <Text style={styles.countBadge}>{total}</Text>
                     </View>
                     <View style={styles.listingsList}>
-                        {listings.map((item) => (
-                            <HouseCard
-                                key={item.id}
-                                listing={item}
-                                onPress={() => navigation.navigate('HouseDetail', { listing: item })}
-                                onFavorite={() => handleFavorite(item.id)}
-                                isFavorited={favorites.includes(item.id)}
-                            />
-                        ))}
+                        {loading && listings.length === 0
+                            ? [1, 2, 3].map((i) => <SkeletonCard key={i} />)
+                            : listings.map((item) => (
+                                <HouseCard
+                                    key={item.id}
+                                    listing={item}
+                                    onPress={() => navigation.navigate('HouseDetail', { listing: item })}
+                                    onFavorite={() => handleFavorite(item.id)}
+                                    isFavorited={favorites.includes(item.id)}
+                                />
+                            ))
+                        }
                     </View>
                     {total > 6 && (
                         <TouchableOpacity

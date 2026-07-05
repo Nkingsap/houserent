@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, StyleSheet } from 'react-native';
+import { View, Text, TextInput, StyleSheet, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, borderRadius, typography } from '../theme';
 
@@ -18,6 +18,7 @@ const InputField = ({
     ...props
 }) => {
     const [focused, setFocused] = useState(false);
+    const [isPasswordVisible, setIsPasswordVisible] = useState(false);
 
     return (
         <View style={[styles.wrapper, style]}>
@@ -38,13 +39,13 @@ const InputField = ({
                         style={styles.icon}
                     />
                 )}
-                <TextInput
+                 <TextInput
                     style={[styles.input, multiline && styles.multilineInput]}
                     value={value}
                     onChangeText={onChangeText}
                     placeholder={placeholder}
                     placeholderTextColor={colors.textMuted}
-                    secureTextEntry={secureTextEntry}
+                    secureTextEntry={secureTextEntry && !isPasswordVisible}
                     keyboardType={keyboardType}
                     multiline={multiline}
                     numberOfLines={numberOfLines}
@@ -53,6 +54,19 @@ const InputField = ({
                     selectionColor={colors.text}
                     {...props}
                 />
+                {secureTextEntry && (
+                    <TouchableOpacity
+                        onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                        style={styles.eyeIcon}
+                        activeOpacity={0.7}
+                    >
+                        <Ionicons
+                            name={isPasswordVisible ? 'eye-off-outline' : 'eye-outline'}
+                            size={20}
+                            color={focused ? colors.text : colors.textMuted}
+                        />
+                    </TouchableOpacity>
+                )}
             </View>
             {error && (
                 <View style={styles.errorRow}>
@@ -103,6 +117,12 @@ const styles = StyleSheet.create({
     },
     multilineInput: {
         textAlignVertical: 'top',
+    },
+    eyeIcon: {
+        padding: spacing.xs,
+        marginLeft: spacing.xs,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
     errorRow: {
         flexDirection: 'row',

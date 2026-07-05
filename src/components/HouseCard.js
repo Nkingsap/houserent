@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import {
     View,
     Text,
@@ -14,11 +14,16 @@ import { getThumbnailUrl } from '../services/apiService';
 const { width } = Dimensions.get('window');
 const CARD_WIDTH = width - spacing.xl * 2;
 
+// Default blurhash placeholder — shows a blurred color preview while image loads
+const DEFAULT_BLURHASH = 'LEHV6nWB2yk8pyo0adR*.7kCMdnj';
+
+// Moved outside component to avoid re-creation on every render
+const formatPrice = (price) => {
+    if (price >= 1000) return `₹${(price / 1000).toFixed(price % 1000 === 0 ? 0 : 1)}K`;
+    return `₹${price}`;
+};
+
 const HouseCard = ({ listing, onPress, onFavorite, isFavorited, compact, distanceKm }) => {
-    const formatPrice = (price) => {
-        if (price >= 1000) return `₹${(price / 1000).toFixed(price % 1000 === 0 ? 0 : 1)}K`;
-        return `₹${price}`;
-    };
 
     if (compact) {
         return (
@@ -29,7 +34,7 @@ const HouseCard = ({ listing, onPress, onFavorite, isFavorited, compact, distanc
             >
                 <View style={styles.compactImageContainer}>
                     {listing.images && listing.images.length > 0 ? (
-                        <Image source={getThumbnailUrl(listing.images[0], 200, 130)} style={styles.compactImage} cachePolicy="memory-disk" transition={200} contentFit="cover" />
+                        <Image source={getThumbnailUrl(listing.images[0], 200, 130)} style={styles.compactImage} cachePolicy="memory-disk" transition={200} contentFit="cover" placeholder={{ blurhash: DEFAULT_BLURHASH }} />
                     ) : (
                         <View style={styles.compactPlaceholder}>
                             <Ionicons name="home-outline" size={24} color={colors.cardDarkTextMuted} />
@@ -78,7 +83,7 @@ const HouseCard = ({ listing, onPress, onFavorite, isFavorited, compact, distanc
         >
             <View style={styles.imageContainer}>
                 {listing.images && listing.images.length > 0 ? (
-                    <Image source={getThumbnailUrl(listing.images[0])} style={styles.image} cachePolicy="memory-disk" transition={200} contentFit="cover" />
+                    <Image source={getThumbnailUrl(listing.images[0])} style={styles.image} cachePolicy="memory-disk" transition={200} contentFit="cover" placeholder={{ blurhash: DEFAULT_BLURHASH }} />
                 ) : (
                     <View style={styles.placeholder}>
                         <Ionicons name="home-outline" size={40} color={colors.textMuted} />
@@ -378,4 +383,12 @@ const styles = StyleSheet.create({
     },
 });
 
-export default HouseCard;
+// Custom comparator: only re-render when meaningful props change
+export default memo(HouseCard, (prev, next) => {
+    return (
+        prev.listing.id === next.listing.id &&
+        prev.isFavorited === next.isFavorited &&
+        prev.distanceKm === next.distanceKm &&
+        prev.compact === next.compact
+    );
+});

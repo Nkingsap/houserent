@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { cacheGet, cacheSet, buildCacheKey, cacheInvalidatePrefix } from './listingsCache';
 
 // ─── Base URL ─────────────────────────────────────────────────────────────────
 // Change this to your deployed Cloudflare Worker URL after running `npm run deploy`
@@ -121,7 +122,20 @@ export const apiGetListings = (params = {}) => {
     const qs = new URLSearchParams(
         Object.entries(params).filter(([, v]) => v != null && v !== '')
     ).toString();
-    return request(`/api/listings${qs ? '?' + qs : ''}`);
+    const path = `/api/listings${qs ? '?' + qs : ''}`;
+    const cacheKey = buildCacheKey('/api/listings', params);
+
+    // Return cached data immediately if available
+    const cached = cacheGet(cacheKey);
+    if (cached && cached.isFresh) {
+        return Promise.resolve(cached.data);
+    }
+
+    // Fetch fresh data (cache-miss or stale)
+    return request(path).then((data) => {
+        cacheSet(cacheKey, data);
+        return data;
+    });
 };
 
 export const apiGetListingsByOwner = (ownerId) =>
@@ -172,15 +186,27 @@ export const apiGeocode = (address) =>
     request(`/api/maps/geocode?address=${encodeURIComponent(address)}`);
 
 // ─── Favorites ────────────────────────────────────────────────────────────────
-export const apiGetFavorites = (userId) =>
-    request(`/api/favorites/${userId}`);
+export const apiGetFavorites = (userId) => {
+    const cacheKey = `favorites:${userId}`;
+    const cached = cacheGet(cacheKey);
+    if (cached && cached.isFresh) {
+        return Promise.resolve(cached.data);
+    }
+    return request(`/api/favorites/${userId}`).then((data) => {
+        cacheSet(cacheKey, data, 120_000); // 2 min TTL for favorites
+        return data;
+    });
+};
 
 export const apiGetFavoriteListings = (userId) =>
     request(`/api/listings/favorites/${userId}`);
 
-export const apiToggleFavorite = (userId, listingId) =>
-    request('/api/favorites/toggle', {
+export const apiToggleFavorite = (userId, listingId) => {
+    // Invalidate favorites cache on toggle so next read is fresh
+    cacheInvalidatePrefix('favorites:');
+    return request('/api/favorites/toggle', {
         method: 'POST',
         body: JSON.stringify({ listing_id: listingId }), // Server extracts userId from JWT
     });
+};
 

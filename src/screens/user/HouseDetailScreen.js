@@ -187,7 +187,7 @@ const HouseDetailScreen = ({ navigation, route }) => {
                                     activeOpacity={0.9}
                                     onPress={() => openGallery(i)}
                                 >
-                                    <Image source={getThumbnailUrl(img, 800, Math.round(IMAGE_SECTION_HEIGHT))} style={styles.galleryImage} cachePolicy="memory-disk" transition={200} contentFit="cover" />
+                                    <Image source={getThumbnailUrl(img, 800, Math.round(IMAGE_SECTION_HEIGHT))} style={styles.galleryImage} cachePolicy="memory-disk" transition={200} contentFit="cover" placeholder={{ blurhash: 'LEHV6nWB2yk8pyo0adR*.7kCMdnj' }} />
                                 </TouchableOpacity>
                             )}
                         />

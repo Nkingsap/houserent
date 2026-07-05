@@ -17,6 +17,7 @@ import { colors, spacing, borderRadius, typography } from '../../theme';
 import SearchBar from '../../components/SearchBar';
 import FilterPanel from '../../components/FilterPanel';
 import HouseCard from '../../components/HouseCard';
+import SkeletonCard from '../../components/SkeletonCard';
 import EmptyState from '../../components/EmptyState';
 import { apiGetListings, apiGetFavorites, apiToggleFavorite } from '../../services/apiService';
 import { useAuth } from '../../context/AuthContext';
@@ -61,6 +62,7 @@ const ExploreScreen = ({ navigation, route }) => {
     const [showFilters, setShowFilters] = useState(false);
     const [total, setTotal] = useState(0);
     const [loadingMore, setLoadingMore] = useState(false);
+    const [initialLoading, setInitialLoading] = useState(true);
     const [hasMore, setHasMore] = useState(true);
 
     // Near Me
@@ -150,6 +152,7 @@ const ExploreScreen = ({ navigation, route }) => {
 
         if (!append) {
             setFavorites(favRes.favorites);
+            setInitialLoading(false);
         }
     };
 
@@ -324,7 +327,11 @@ const ExploreScreen = ({ navigation, route }) => {
             </View>
 
             {/* List Content */}
-            {results.length === 0 ? (
+            {initialLoading && results.length === 0 ? (
+                <View style={styles.listContent}>
+                    {[1, 2, 3, 4].map((i) => <SkeletonCard key={i} />)}
+                </View>
+            ) : results.length === 0 ? (
                 <EmptyState
                     icon={nearMe ? 'location-outline' : 'search-outline'}
                     title={nearMe ? `No properties within ${nearMeRadius}km` : 'No properties found'}
@@ -342,6 +349,10 @@ const ExploreScreen = ({ navigation, route }) => {
                     showsVerticalScrollIndicator={false}
                     onEndReached={handleLoadMore}
                     onEndReachedThreshold={0.3}
+                    initialNumToRender={4}
+                    maxToRenderPerBatch={4}
+                    windowSize={5}
+                    removeClippedSubviews={true}
                     ListFooterComponent={loadingMore ? (
                         <View style={{ paddingVertical: 20, alignItems: 'center' }}>
                             <ActivityIndicator size="small" color={colors.textMuted} />

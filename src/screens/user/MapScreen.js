@@ -8,19 +8,22 @@ import {
     Dimensions,
     ActivityIndicator,
     Animated,
-    Image,
     Platform,
     TextInput,
     Keyboard,
 } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import * as Location from 'expo-location';
 import MapView, { Marker, Callout } from '../../components/MapViewWrapper';
 import { colors, spacing, borderRadius, typography } from '../../theme';
-import { apiGetListings, apiGetFavorites } from '../../services/apiService';
+import { apiGetListings, apiGetFavorites, getThumbnailUrl } from '../../services/apiService';
 import { useAuth } from '../../context/AuthContext';
+
+// Default blurhash placeholder
+const DEFAULT_BLURHASH = 'LEHV6nWB2yk8pyo0adR*.7kCMdnj';
 
 const { width, height } = Dimensions.get('window');
 
@@ -125,6 +128,12 @@ const MapScreen = ({ navigation }) => {
         // Stop propagation so the map's onPress (handleMapPress) doesn't fire
         if (e && e.stopPropagation) e.stopPropagation();
         setSelectedListing(listing);
+
+        // Prefetch first image at detail-screen resolution so "View Details" is instant
+        if (listing.images?.length > 0) {
+            Image.prefetch(getThumbnailUrl(listing.images[0], 800, 400));
+        }
+
         mapRef.current?.animateToRegion(
             {
                 latitude: listing.latitude - 0.012,
@@ -374,9 +383,12 @@ const MapScreen = ({ navigation }) => {
                         {/* Thumbnail */}
                         {selectedListing.images && selectedListing.images.length > 0 ? (
                             <Image
-                                source={{ uri: selectedListing.images[0] }}
+                                source={getThumbnailUrl(selectedListing.images[0], 400, 130)}
                                 style={styles.cardImage}
-                                resizeMode="cover"
+                                contentFit="cover"
+                                cachePolicy="memory-disk"
+                                transition={150}
+                                placeholder={{ blurhash: DEFAULT_BLURHASH }}
                             />
                         ) : (
                             <View style={[styles.cardImage, styles.cardImagePlaceholder]}>
